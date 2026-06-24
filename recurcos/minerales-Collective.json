@@ -1,0 +1,20 @@
+{
+  "minerales": [
+    "COBRE",
+    "cobre",
+    "MOLIBDENO",
+    "molibdeno",
+    "NIQUEL",
+    "niquel",
+    "ORO",
+    "oro",
+    "PLATA",
+    "plata",
+    "PLATINO",
+    "platino",
+    "WOLFRAMIO",
+    "wolframio",
+    "ZINC",
+    "zinc"
+  ]
+}

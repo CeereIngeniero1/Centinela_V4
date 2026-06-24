@@ -1,0 +1,158 @@
+{
+  "Ac": {
+    "pin": "20231121081255",
+    "vencimiento": "21/DIC/2023"
+  },
+  "Co": {
+    "pin": "20260602133357",
+    "vencimiento": "02/JUL/2026",
+    "empresa": "Collective"
+  },
+  "C1": {
+    "pin": "20260602133728",
+    "vencimiento": "02/JUL/2026",
+    "empresa": "Collective"
+  },
+  "C2": {
+    "pin": "20260602134212",
+    "vencimiento": "02/JUL/2026",
+    "empresa": "Collective"
+  },
+  "C3": {
+    "pin": "20260605131617",
+    "vencimiento": "05/JUL/2026",
+    "empresa": "Collective"
+  },
+  "C4": {
+    "pin": "20260605131916",
+    "vencimiento": "05/JUL/2026",
+    "empresa": "Collective"
+  },
+  "C5": {
+    "pin": "20260605133945",
+    "vencimiento": "05/JUL/2026",
+    "empresa": "Collective"
+  },
+  "C6": {
+    "pin": "20260605133945",
+    "vencimiento": "05/JUL/2026",
+    "empresa": "Collective"
+  },
+  "C7": {
+    "pin": "20260605133945",
+    "vencimiento": "05/JUL/2026",
+    "empresa": "Collective"
+  },
+  "Po": {
+    "pin": "20241008080440",
+    "vencimiento": "08/NOV/2024",
+    "empresa": "Provenza"
+  },
+  "P2": {
+    "pin": "20231121081255",
+    "vencimiento": "21/DIC/2023"
+  },
+  "A2": {
+    "pin": "20231121081255",
+    "vencimiento": "21/DIC/2023",
+    "empresa": "ARABANY"
+  },
+  "A3": {
+    "pin": "20231121081255",
+    "vencimiento": "21/DIC/2023",
+    "empresa": "ARABANY"
+  },
+  "LF": {
+    "pin": "20250515134010",
+    "vencimiento": "15/JUN/2025"
+  },
+  "L1": {
+    "pin": "20250522103932",
+    "vencimiento": "22/JUN/2025"
+  },
+  "Fr": {
+    "pin": "20260327081329",
+    "vencimiento": "27/ABR/2026",
+    "empresa": "Freeport"
+  },
+  "F1": {
+    "pin": "20260408100845",
+    "vencimiento": "08/MAY/2026",
+    "empresa": "Freeport"
+  },
+  "F2": {
+    "pin": "20260408101233",
+    "vencimiento": "08/MAY/2026",
+    "empresa": "Freeport"
+  },
+  "F3": {
+    "pin": "20250917101123",
+    "vencimiento": "17/OCT/2025",
+    "empresa": "Freeport"
+  },
+  "NM": {
+    "pin": "20250902153109",
+    "vencimiento": "02/OCT/2025",
+    "empresa": "NegoYMetales"
+  },
+  "N1": {
+    "pin": "20250902153757",
+    "vencimiento": "02/OCT/2025",
+    "empresa": "NegoYMetales"
+  },
+  "N2": {
+    "pin": "20250902154236",
+    "vencimiento": "02/OCT/2025",
+    "empresa": "NegoYMetales"
+  },
+  "N3": {
+    "pin": "20250902154856",
+    "vencimiento": "02/OCT/2025",
+    "empresa": "NegoYMetales"
+  },
+  "Mi": {
+    "pin": "20250708115313",
+    "vencimiento": "08/AGO/2025",
+    "empresa": "Miranda"
+  },
+  "M1": {
+    "pin": "20250708115938",
+    "vencimiento": "08/AGO/2025",
+    "empresa": "Miranda"
+  },
+  "M2": {
+    "pin": "20250708115938",
+    "vencimiento": "08/AGO/2025",
+    "empresa": "Miranda"
+  },
+  "VL": {
+    "pin": "20260528151338",
+    "vencimiento": "28/JUN/2026",
+    "empresa": "Valleduper"
+  },
+  "V1": {
+    "pin": "20260528151338",
+    "vencimiento": "28/JUN/2026",
+    "empresa": "Valleduper"
+  },
+  "V2": {
+    "pin": "20260528151338",
+    "vencimiento": "28/JUN/2026",
+    "empresa": "Valleduper"
+  },
+  "V3": {
+    "pin": "20260602083927",
+    "vencimiento": "02/JUL/2026",
+    "empresa": "Valleduper"
+  },
+  "V4": {
+    "pin": "20260602084453",
+    "vencimiento": "02/JUL/2026",
+    "empresa": "Valleduper"
+  },
+  "V5": {
+    "pin": "20260528151008",
+    "vencimiento": "28/JUN/2026",
+    "empresa": "Valleduper"
+  }
+}

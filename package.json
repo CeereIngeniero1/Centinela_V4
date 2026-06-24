@@ -1,0 +1,22 @@
+{
+  "name": "Centinela_V4",
+  "version": "1.0.0",
+  "description": "",
+  "main": "Collective.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@nut-tree-fork/nut-js": "^4.2.6",
+    "colors": "^1.4.0",
+    "dotenv": "^17.2.2",
+    "nodemailer": "^7.0.5",
+    "puppeteer": "^6.0.0"
+  }
+}

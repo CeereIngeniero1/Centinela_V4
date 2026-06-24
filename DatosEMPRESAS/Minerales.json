@@ -1,0 +1,54 @@
+{
+  "Collective": [
+    "COBRE",
+    "cobre",
+    "MOLIBDENO",
+    "molibdeno",
+    "NIQUEL",
+    "niquel",
+    "ORO",
+    "oro",
+    "PLATA",
+    "plata",
+    "PLATINO",
+    "platino",
+    "WOLFRAMIO",
+    "wolframio",
+    "ZINC",
+    "zinc"
+  ],
+  "Valleduper": [
+    "COBRE",
+    "cobre",
+    "PLATA",
+    "Plata",
+    "ORO",
+    "oro"
+  ],
+  "Freeport": [
+    "COBRE",
+    "cobre",
+    "PLATA",
+    "Plata",
+    "ORO",
+    "oro"
+  ],
+  "Miranda": [
+    "PLATINO",
+    "Platino",
+    "PLATA",
+    "Plata",
+    "ORO",
+    "oro",
+    "COBRE",
+    "Cobre"
+  ],
+  "OPERADORA": [
+    "COBRE",
+    "cobre",
+    "PLATA",
+    "Plata",
+    "ORO",
+    "oro"
+  ]
+}
