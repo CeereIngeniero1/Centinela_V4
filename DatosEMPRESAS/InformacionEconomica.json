@@ -1,0 +1,56 @@
+{
+  "ARABANY": {
+    "pasivoCorrienteId0": 758771,
+    "activoCorrienteId0": 3620854,
+    "pasivoTotalId0": 758771,
+    "activoTotalId0": 7109986
+  },
+  "Valleduper": {
+    "pasivoCorrienteId0": 2681475213,
+    "activoCorrienteId0": 714504840,
+    "pasivoTotalId0": 2681475213,
+    "activoTotalId0": 51365607504
+  },
+  "MAX": {
+    "pasivoCorrienteId0": 2681475213,
+    "activoCorrienteId0": 714504840,
+    "pasivoTotalId0": 2681475213,
+    "activoTotalId0": 51365607504
+  },
+  "Collective": {
+    "pasivoCorrienteId0": 7024772000,
+    "activoCorrienteId0": 31049615000,
+    "pasivoTotalId0": 7345458000,
+    "activoTotalId0": 193966804000
+  },
+  "NegoYMetales": {
+    "pasivoCorrienteId0": 77678552,
+    "activoCorrienteId0": 3419636415,
+    "pasivoTotalId0": 1501296112,
+    "activoTotalId0": 3565989574
+  },
+  "Freeport": {
+    "pasivoCorrienteId0": 32023000,
+    "activoCorrienteId0": 273722000,
+    "pasivoTotalId0": 32023000,
+    "activoTotalId0": 575074000
+  },
+  "Provenza": {
+    "pasivoCorrienteId0": 15184416062,
+    "activoCorrienteId0": 42539369275,
+    "pasivoTotalId0": 15401226207,
+    "activoTotalId0": 48322540755
+  },
+  "Operadora": {
+    "pasivoCorrienteId0": 51117558,
+    "activoCorrienteId0": 98228435,
+    "pasivoTotalId0": 71209480,
+    "activoTotalId0": 191255293
+  },
+  "Miranda": {
+    "pasivoCorrienteId0": 8589951000,
+    "activoCorrienteId0": 1020635000,
+    "pasivoTotalId0": 9140193000,
+    "activoTotalId0": 70675553000
+  }
+}

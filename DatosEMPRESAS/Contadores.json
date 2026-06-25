@@ -1,0 +1,66 @@
+{
+  "ARABANY": [
+    {
+      "tipo": "Contador",
+      "nombres": [
+        "JUAN GONZALO  MONTOYA LOPEZ (37634)"
+      ]
+    }
+  ],
+  "Valleduper": [
+    {
+      "tipo": "Contador",
+      "nombres": [
+        "Fabian Andres Ruiz Manrique (81486)"
+      ]
+    }
+  ],
+  "Collective": [
+    {
+      "tipo": "Contador",
+      "nombres": [
+        "PABLO ESTEBAN MONTOYA MONTOYA (91124)"
+      ]
+    }
+  ],
+  "NegoYMetales": [
+    {
+      "tipo": "Contador",
+      "nombres": [
+        "NILSON FABER VALDERRAMA SUAREZ (79731)"
+      ]
+    }
+  ],
+  "Freeport": [
+    {
+      "tipo": "Contador",
+      "nombres": [
+        "YISELA ISABEL ORTIZ TAPIAS (97297)"
+      ]
+    }
+  ],
+  "Provenza": [
+    {
+      "tipo": "Contador",
+      "nombres": [
+        "PABLO ESTEBAN MONTOYA MONTOYA (91124)"
+      ]
+    }
+  ],
+  "Operadora": [
+    {
+      "tipo": "Contador",
+      "nombres": [
+        "ISABEL CRISTINA TABARES URREGO (71341)"
+      ]
+    }
+  ],
+  "Miranda": [
+    {
+      "tipo": "Contador",
+      "nombres": [
+        "LUIS FERNANDO VARGAS JULIO (93637)"
+      ]
+    }
+  ]
+}

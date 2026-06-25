@@ -1,0 +1,56 @@
+{
+  "ARABANY": {
+    "Codigo": "45248",
+    "Contraseña": "ANM2020ANNA*",
+    "Nombre": "ARABANY  GARCIA RINCON",
+    "TipoUsuario": "PN"
+  },
+  "Valleduper": {
+    "Codigo": "75967",
+    "Contraseña": "M4XR3SOUR2026$",
+    "Nombre": "MAX RESOURCE COLOMBIA S.A.S",
+    "TipoUsuario": "PJ"
+  },
+  "MAX": {
+    "Codigo": "75967",
+    "Contraseña": "M4XR3SOUR2026$",
+    "Nombre": "MAX RESOURCE COLOMBIA S.A.S",
+    "TipoUsuario": "PJ"
+  },
+  "Collective": {
+    "Codigo": "76966",
+    "Contraseña": "Bloqueotodoeldia2026_",
+    "Nombre": "COLLECTIVE MINING LIMITED SUCURSAL COLOMBIA",
+    "TipoUsuario": "PJ"
+  },
+  "NegoYMetales": {
+    "Codigo": "98725",
+    "Contraseña": "Riosucio2025.",
+    "Nombre": "NEGOCIOS F Y M METALES S.A.S",
+    "TipoUsuario": "PJ"
+  },
+  "Freeport": {
+    "Codigo": "97295",
+    "Contraseña": "Freeport2025#",
+    "Nombre": "Freeport-McMoRan Exploration Colombia SAS",
+    "TipoUsuario": "PJ"
+  },
+  "Provenza": {
+    "Codigo": "74025",
+    "Contraseña": "provenXa2026.*",
+    "Nombre": "MINERALES PROVENZA SAS",
+    "TipoUsuario": "PJ"
+  },
+  "Operadora": {
+    "Codigo": "71124",
+    "Contraseña": "ANM2020ANNA*",
+    "Nombre": "OPERADORA MINERA DE COLOMBIA S.A.S.",
+    "TipoUsuario": "PJ"
+  },
+  "Miranda": {
+    "Codigo": "56679",
+    "Contraseña": "MSAColombia2024*",
+    "Nombre": "MINERALES SANTA ANA COLOMBIA S.A.S",
+    "TipoUsuario": "PJ"
+  }
+}
