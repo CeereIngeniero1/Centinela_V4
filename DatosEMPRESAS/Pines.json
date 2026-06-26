@@ -131,17 +131,17 @@
     "empresa": "Valleduper"
   },
   "V1": {
-    "pin": "20260528151338",
-    "vencimiento": "28/JUN/2026",
+    "pin": "20260602084453",
+    "vencimiento": "02/JUL/2026",
     "empresa": "Valleduper"
   },
   "V2": {
-    "pin": "20260528151338",
-    "vencimiento": "28/JUN/2026",
+    "pin": "20260602084453",
+    "vencimiento": "02/JUL/2026",
     "empresa": "Valleduper"
   },
   "V3": {
-    "pin": "20260602083927",
+    "pin": "20260602084453",
     "vencimiento": "02/JUL/2026",
     "empresa": "Valleduper"
   },
@@ -151,8 +151,8 @@
     "empresa": "Valleduper"
   },
   "V5": {
-    "pin": "20260528151008",
-    "vencimiento": "28/JUN/2026",
+   "pin": "20260602084453",
+    "vencimiento": "02/JUL/2026",
     "empresa": "Valleduper"
   },
   "OP": {
