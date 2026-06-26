@@ -1,0 +1,1 @@
+start "" /d "../" cmd /k "git fetch --all && git reset --hard @{u}"
