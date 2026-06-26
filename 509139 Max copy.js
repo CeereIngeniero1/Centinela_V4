@@ -24,9 +24,9 @@ console.log(" Nombre del equipo: ", NombreEquipo);
 const EquipoActual = EquiposGenerales[NombreEquipo];
 console.log(" Equipo Actual: ", EquipoActual);
 
-const Empresa = "Operadora";
-const CodigoPin = "OP";
-const ARCHIVO_AREAS = "Operadora";
+const Empresa = "Valleduper";
+const CodigoPin = "V1";
+const ARCHIVO_AREAS = "509139 prueba";
 const DASHBOARD_URL = "https://annamineria.anm.gov.co/sigm/index.html#/extDashboard";
 const ESPERA_DASHBOARD_MS = 3000;
 const MAX_INTENTOS_DASHBOARD = 3;
@@ -64,9 +64,9 @@ const Datos_Contadores = Contadores[Empresa];
 
 const user1 = Datos_Empresa.Codigo;
 const pass1 = Datos_Empresa.Contraseña;
-const user2 = '91311';
-const pass2 = 'pW0*kC1*rQ';
-const Agente = 1;
+const user2 = '96233';
+const pass2 = 'SuperAgente86*';
+const Agente = 0;
 const manual = 0; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
 var EnviarCorreosParaPestanas = 0;
 var CorreoAvisoLoginEnviado = false;
@@ -129,6 +129,9 @@ async function Login(page) {
     if (!CorreoAvisoLoginEnviado) {
       console.log(
         "Han pasado 2 minutos esperando el login manual. Enviando correo de aviso..."
+      );
+      console.log(
+        "PRIMER time"
       );
       Correo(7, "", "");
       CorreoAvisoLoginEnviado = true;
@@ -1923,7 +1926,9 @@ function Mineria(browser, Pin,) {
 
     let Primerpaso = setTimeout(() => {
       console.log("ENTRO EN EL PRIMERPASO (timeout de login manual)");
-
+      console.log(
+        "SEGUNDO time"
+      );
       page.close();
       Mineria(browser, Pin);
     }, 30 * 60 * 1000);
@@ -1949,6 +1954,7 @@ function Mineria(browser, Pin,) {
     if (manual != 1) {
       Segundopaso = setTimeout(() => {
         console.log("ENTRO EN EL Segundopaso");
+        console.log("TERCER time");
         page.close();
         Mineria(browser, Pin);
       }, 30000);
@@ -2035,6 +2041,7 @@ function Mineria(browser, Pin,) {
       console.log("Inicia el timer de seguridad (TimeArea)");
       TimeArea = setTimeout(() => {
         console.log("ENTRO EN EL TimeArea");
+        console.log("CUARTO time");
         reiniciarMineriaDesdeTimer(browser, Pin, page, "TimeArea");
       }, TIMEAREA_REINICIO_MS);
 
@@ -2146,6 +2153,9 @@ function Mineria(browser, Pin,) {
     let TimeNOpaso = setTimeout(() => {
       bandera = 99;
       console.log("ENTRO EN EL TimeNOpaso");
+      console.log(
+        "QUINTO time"
+      );
       page.close();
       Mineria(browser, Pin);
     }, 20000);
@@ -2171,6 +2181,7 @@ function Mineria(browser, Pin,) {
     clearTimeout(TimeNOpaso);
     let RadiPrimero = setTimeout(() => {
       console.log("ENTRO EN EL RadiPrimero");
+      console.log("SEXTO time");
       reiniciarMineriaDesdeTimer(browser, Pin, page, "RadiPrimero");
     }, 30000);
 
@@ -2242,12 +2253,7 @@ function Mineria(browser, Pin,) {
 
 
     clearTimeout(RadiPrimero);
-    let Radisegundo = setTimeout(() => {
-      console.log("ENTRO EN EL Radisegundo");
-      //page.close();
-      Mineria(browser, Pin);
-    }, 10000);
-
+    
 
     await Certificado_Shapefile(page, Empresa, Areas[Band].NombreArea);
 
@@ -2263,83 +2269,7 @@ function Mineria(browser, Pin,) {
     }
 
     const continPag = await page.$x('//span[contains(.,"Continuar")]');
-    await continPag[1].click();
-
-    clearTimeout(Radisegundo);
-    await page.waitForNavigation({
-      waitUntil: "networkidle0",
-    });
-    console.log(" si navego ");
-
-
-
-
-    let RadiTercero = setTimeout(() => {
-      console.log("ENTRO EN EL Radisegundo");
-      //page.close();
-      Mineria(browser, Pin);
-    }, 120000);
-
-    //  await page.waitForTimeout(1000000);
-
-
-    while (true) {
-
-      let resultado = await RECAPTCHA(page);
-      if (resultado == 1) {
-        break;
-      }
-
-    }
-
-    var imagendeCaptcha = 0;
-    while (true) {
-      await page.waitForTimeout(1500);
-
-      if (page.url() === 'https://annamineria.anm.gov.co/sigm/index.html#/p_CaaIataSummary') {
-        let resultado = await verificarCaptchaResuelto(page, imagendeCaptcha);
-        if (resultado === 1) {
-          clearTimeout(RadiTercero);
-          break;
-        } else if (resultado === 2) {
-          console.log("El captcha sigue en modo reto de imagenes");
-          Correo(6, Areas[Band].NombreArea, Areas[Band].Referencia);
-          // lO RETIRO PORQUE NO VALE LA PENA
-          // Mineria(browser, Pin);
-          imagendeCaptcha = 1;
-        } else {
-          // await RECAPTCHA(page);
-        }
-
-      } else if (page.url() === 'https://annamineria.anm.gov.co/sigm/index.html#/p_CaaIataAttachDocuments') {
-        const posibleContinuar = await page.$x('//span[contains(.,"Continuar")]');
-        if (posibleContinuar.length > 0) {
-          console.log("⚠️ Se encontró el botón 'Continuar' en la página.");
-          console.log([posibleContinuar]);
-          await posibleContinuar[1].click();
-          await page.waitForNavigation({
-            waitUntil: "networkidle0",
-          });
-          await RECAPTCHA(page);
-        }
-      }
-    }
-
-    // await page.waitForTimeout(1000000);
-
-    console.log("51. Bóton Radicar");
-
-    const btnRadicar1 = await page.$x('//span[contains(.,"Radicar")]');
-    console.log("Este es el boton radicar : " + btnRadicar1);
-
-    console.log("Le di click");
-
-    try {
-      await btnRadicar1[1].click();
-    } catch (exepcion) {
-      console.log("La 1 tampoco Y_Y");
-    }
-
+ 
 
     //CORREO RADICACION
     Correo(2, Areas[Band].NombreArea, Areas[Band].Referencia);
@@ -2421,8 +2351,8 @@ function Correo(Tipo, Area, Celda) {
 
   let mailOptions = {
     from: msg + '"Ceere" <correomineria2@ceere.net>', //Deje eso quieto Outlook porne demasiados problemas
-    to: "jorgecalle@hotmail.com, jorgecaller@gmail.com, alexisaza@hotmail.com,  ceereweb@gmail.com, Soporte2ceere@gmail.com, soportee4@gmail.com, soporte.ceere06068@gmail.com",
-    //to: '  Soporte2ceere@gmail.com',
+    //to: "jorgecalle@hotmail.com, jorgecaller@gmail.com, alexisaza@hotmail.com,  ceereweb@gmail.com, Soporte2ceere@gmail.com, soportee4@gmail.com, soporte.ceere06068@gmail.com",
+    to: '  Soporte2ceere@gmail.com',
     subject: "LA AREA ES-> " + Area,
     text: "LA AREA ES->  " + Area + "  " + Celda,
     html: `

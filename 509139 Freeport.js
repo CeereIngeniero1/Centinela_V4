@@ -24,9 +24,9 @@ console.log(" Nombre del equipo: ", NombreEquipo);
 const EquipoActual = EquiposGenerales[NombreEquipo];
 console.log(" Equipo Actual: ", EquipoActual);
 
-const Empresa = "Operadora";
-const CodigoPin = "OP";
-const ARCHIVO_AREAS = "Operadora";
+const Empresa = "Valleduper";
+const CodigoPin = "V1";
+const ARCHIVO_AREAS = "509139";
 const DASHBOARD_URL = "https://annamineria.anm.gov.co/sigm/index.html#/extDashboard";
 const ESPERA_DASHBOARD_MS = 3000;
 const MAX_INTENTOS_DASHBOARD = 3;
@@ -64,10 +64,10 @@ const Datos_Contadores = Contadores[Empresa];
 
 const user1 = Datos_Empresa.Codigo;
 const pass1 = Datos_Empresa.Contraseña;
-const user2 = '91311';
-const pass2 = 'pW0*kC1*rQ';
+const user2 = '97295';
+const pass2 = 'FR3P3RTM2026$';
 const Agente = 1;
-const manual = 0; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
+const manual = 1; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
 var EnviarCorreosParaPestanas = 0;
 var CorreoAvisoLoginEnviado = false;
 var contreapertura = 0;

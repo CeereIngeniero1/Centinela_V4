@@ -32,12 +32,17 @@ const ESPERA_DASHBOARD_MS = 3000;
 const MAX_INTENTOS_DASHBOARD = 3;
 const URL_EXITO_AREAS =
   "https://annamineria.anm.gov.co/sigm/index.html#/p_CaaIataInputTechnicalEconomicalDetails";
+const RUTAS_FLUJO_RADICACION = [
+  "#/p_CaaIataInputTechnicalEconomicalDetails",
+  "#/p_CaaIataAttachDocuments",
+];
 const MONITOREO_AREA_MS = 30 * 1000;
 const INTERVALO_PRIMERA_REVISION_MS = 1 * 1000;
 const INTERVALO_REVISION_AREA_MS = 5 * 1000;
 const ESPERA_ENTRE_AREAS_MS = 30 * 1000;
 const INTERVALO_REVISION_ENTRE_AREAS_MS = 3 * 1000;
 const TIMEAREA_REINICIO_MS = 5 * 60 * 1000;
+const ESPERA_ANTES_CONTINUAR_AREA_MS = 400;
 const Pines = JSON.parse(
   fs.readFileSync(path.join(__dirname, "DatosEMPRESAS", "Pines.json"), "utf-8")
 );
@@ -62,6 +67,7 @@ const pass1 = Datos_Empresa.Contraseña;
 const user2 = '96233';
 const pass2 = 'SuperAgente86*';
 const Agente = 1;
+const manual = 0; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
 var EnviarCorreosParaPestanas = 0;
 var CorreoAvisoLoginEnviado = false;
 var contreapertura = 0;
@@ -242,8 +248,116 @@ async function detectarErrorPinObligatorio(page) {
   });
 }
 
+async function detectarErrorMineralesObligatorio(page) {
+  return page.evaluate(() => {
+    const objetivo = "El campo Detalle de los minerales es obligatorio";
+    const errores = document.querySelectorAll(
+      ".errorMsg, .errorMsg a, .errorMsg span"
+    );
+    for (let i = 0; i < errores.length; i++) {
+      if ((errores[i].textContent || "").includes(objetivo)) return true;
+    }
+    return false;
+  });
+}
+
+async function asegurarMineralesColocados(page, opciones = {}) {
+  const timeout = opciones.timeout ?? (manual == 1 ? 0 : 15000);
+  const etiqueta = opciones.etiqueta ? `[${opciones.etiqueta}] ` : "";
+  const soloSiError = opciones.soloSiError ?? false;
+
+  if (soloSiError && !(await detectarErrorMineralesObligatorio(page))) {
+    return true;
+  }
+
+  try {
+    await page.waitForSelector('button[ng-class="settings.buttonClasses"]', {
+      visible: true,
+      timeout,
+    });
+    console.log(`${etiqueta}Colocando minerales...`);
+    await Minerales(page);
+    await page.waitForTimeout(500);
+    console.log(`${etiqueta}✅ Minerales colocados.`);
+    return true;
+  } catch (error) {
+    console.log(
+      `${etiqueta}⚠️ Botón de minerales no disponible:`,
+      error.message
+    );
+    return false;
+  }
+}
+
+async function corregirMineralesSiObligatorio(page) {
+  if (!(await detectarErrorMineralesObligatorio(page))) return false;
+  console.log("🔴 Detalle de minerales obligatorio. Colocando minerales...");
+  await asegurarMineralesColocados(page, {
+    timeout: 15000,
+    etiqueta: "corrección",
+  });
+  return true;
+}
+
+async function clickContinuarVerificandoMinerales(page, indice = 1) {
+  if (await detectarErrorMineralesObligatorio(page)) {
+    await asegurarMineralesColocados(page, {
+      timeout: 15000,
+      etiqueta: "pre-continuar-área",
+    });
+  }
+  await clickContinuar(page, indice);
+  await page.waitForTimeout(400);
+  if (await corregirMineralesSiObligatorio(page)) {
+    await page.waitForTimeout(400);
+    await clickContinuar(page, indice);
+  }
+}
+
+async function clickContinuarArea(page, indice = 1) {
+  console.log("Clic en Continuar tras colocar área...");
+  await clickContinuar(page, indice, 5000);
+  await page.waitForTimeout(ESPERA_ANTES_CONTINUAR_AREA_MS);
+  if (await detectarErrorMineralesObligatorio(page)) {
+    await corregirMineralesSiObligatorio(page);
+    await page.waitForTimeout(ESPERA_ANTES_CONTINUAR_AREA_MS);
+    await clickContinuar(page, indice, 5000);
+  }
+}
+
 function sigueEnPantallaPin(page) {
   return page.url().includes("p_CaalataSelectClient");
+}
+
+function estaEnFlujoRadicacion(page) {
+  try {
+    if (!page) return false;
+    const url = page.url();
+    return RUTAS_FLUJO_RADICACION.some((ruta) => url.includes(ruta));
+  } catch (error) {
+    return false;
+  }
+}
+
+function reiniciarMineriaDesdeTimer(browser, Pin, page, etiqueta = "Timer") {
+  (async () => {
+    if (estaEnFlujoRadicacion(page)) {
+      console.log(`✅ ${etiqueta}: ya en flujo de radicación; no se reinicia.`);
+      return;
+    }
+    if (await debeOmitirReinicioModoManual(page)) {
+      console.log(
+        `✅ ${etiqueta}: modo manual activo; no se reinicia mientras navega.`
+      );
+      return;
+    }
+    try {
+      page.close();
+    } catch (error) {
+      console.log("No se pudo cerrar la página:", error.message);
+    }
+    Mineria(browser, Pin);
+  })();
 }
 
 async function reiniciarMineria(browser, Pin, page, timers = []) {
@@ -252,6 +366,21 @@ async function reiniciarMineria(browser, Pin, page, timers = []) {
       clearTimeout(timer);
     }
   });
+
+  if (estaEnFlujoRadicacion(page)) {
+    console.log(
+      "✅ Ya está en pantalla de radicación; no se reinicia Mineria."
+    );
+    return false;
+  }
+
+  if (await debeOmitirReinicioModoManual(page)) {
+    console.log(
+      "✅ Modo manual: no se reinicia mientras navega hacia las áreas."
+    );
+    return false;
+  }
+
   console.log("♻️ Reiniciando Mineria por error o bloqueo...");
   try {
     await page.close();
@@ -259,12 +388,13 @@ async function reiniciarMineria(browser, Pin, page, timers = []) {
     console.log("No se pudo cerrar la página:", error.message);
   }
   Mineria(browser, Pin);
+  return true;
 }
 
-async function clickContinuar(page, indice = 1) {
+async function clickContinuar(page, indice = 1, timeout = 15000) {
   await page.waitForXPath('//span[contains(.,"Continuar")]', {
     visible: true,
-    timeout: 15000,
+    timeout,
   });
 
   const hacerClic = async () => {
@@ -281,6 +411,56 @@ async function clickContinuar(page, indice = 1) {
     console.log("Reintentando clic en Continuar:", error.message);
     await page.waitForTimeout(1000);
     await hacerClic();
+  }
+}
+
+async function esperarContinuarManualPin(page) {
+  console.log(
+    "⏳ Modo manual PIN: haga clic en Continuar cuando esté listo.",
+    "El bot continuará al salir de la pantalla del PIN."
+  );
+  await page.waitForFunction(
+    () => !window.location.href.includes("p_CaalataSelectClient"),
+    { timeout: 0 }
+  );
+  await page.waitForTimeout(1000);
+  console.log("✅ Avance manual desde PIN detectado.");
+}
+
+async function esperarPantallaAreas(page) {
+  console.log(
+    "⏳ Modo manual: navegue hasta la pantalla de áreas.",
+    "El bot continuará cuando detecte el selector de área."
+  );
+  await page.waitForSelector('select[name="areaOfConcessionSlct"]', {
+    visible: true,
+    timeout: 0,
+  });
+  await page.waitForTimeout(1000);
+  console.log("✅ Pantalla de áreas detectada.");
+}
+
+async function debeOmitirReinicioModoManual(page) {
+  if (manual != 1) return false;
+  if (estaEnFlujoRadicacion(page)) return true;
+  try {
+    if (!page) return true;
+    if (sigueEnPantallaPin(page)) return true;
+    const selectArea = await page.$('select[name="areaOfConcessionSlct"]');
+    if (!selectArea) return true;
+  } catch (error) {
+    return true;
+  }
+  return false;
+}
+
+async function avanzarDesdePin(page) {
+  if (manual == 1) {
+    await esperarContinuarManualPin(page);
+  } else {
+    await page.waitForXPath('//span[contains(.,"Continuar")]');
+    await clickContinuar(page, 1);
+    await page.waitForTimeout(1000);
   }
 }
 
@@ -360,10 +540,7 @@ async function seleccionar_Pin(page, Pin, Veces) {
   const closestDateOption = pinTexto;
   const input = pinTexto;
 
-  await page.waitForXPath('//span[contains(.,"Continuar")]');
-  await clickContinuar(page, 1);
-
-  await page.waitForTimeout(1000);
+  await avanzarDesdePin(page);
 
   if (await detectarErrorPinObligatorio(page)) {
     console.log("🔴 Error PIN obligatorio detectado tras Continuar.");
@@ -373,15 +550,18 @@ async function seleccionar_Pin(page, Pin, Veces) {
     }
   }
 
-  try {
-    await page.waitForSelector('button[ng-class="settings.buttonClasses"]', {
-      timeout: 3000,
-    });
-    console.log("✅ Botón encontrado, ejecutando acción principal...");
-    await Minerales(page);
-  } catch (error) {
+  const mineralesColocados = await asegurarMineralesColocados(page, {
+    timeout: manual == 1 ? 0 : 3000,
+    etiqueta: "post-PIN",
+  });
+
+  if (manual == 1) {
+    return { closestDateOption, input };
+  }
+
+  if (!mineralesColocados) {
     console.log(
-      "⏱ No apareció el botón en 3 segundos, ejecutando lógica del PIN..."
+      "⏱ No apareció el botón de minerales, ejecutando lógica del PIN..."
     );
 
     if (await detectarErrorPinObligatorio(page) && Veces == 0) {
@@ -461,7 +641,7 @@ async function MonitorearAreas(page, IdArea, Celda, Area) {
 }
 
 async function evaluarEstadoArea(page) {
-  if (page.url().includes("#/p_CaaIataInputTechnicalEconomicalDetails")) {
+  if (estaEnFlujoRadicacion(page)) {
     return "exito";
   }
 
@@ -564,6 +744,19 @@ async function esperarEntreAreas(page, opciones = {}) {
       return "exito";
     }
 
+    if (estado === "error") {
+      console.log(
+        `${etiqueta}Errores en celdas; intentando reorganizar el área...`
+      );
+      const reorganizado = await intentarReorganizarArea(page);
+      if (reorganizado) {
+        console.log(
+          `${etiqueta}✅ Área reorganizada durante la espera entre áreas.`
+        );
+        return "reorganizado";
+      }
+    }
+
     const restante = duracionMax - (Date.now() - inicio);
     if (restante <= 0) {
       break;
@@ -584,96 +777,130 @@ async function pasarSiguienteArea(page) {
 }
 
 async function intentarReorganizarArea(page) {
-  try {
-    const celdasNoDisponibles = await page.$$eval("a.errorMsg", (links) => {
-      return links
-        .filter((link) =>
-          link.textContent.includes(
-            "Las siguientes celdas de selección no están disponibles:"
-          )
-        )
-        .map((link) =>
-          link.textContent
-            .split(": ")[1]
-            .split(",")
-            .map((celda) => celda.trim())
-        );
-    });
+  const maxIntentos = 3;
 
-    console.log(
-      `===============================================================================================`
-        .cyan.bold
-    );
-    console.log(`ÁREA COMPLETA => `.magenta.bold);
-    console.log(`[${Areas[Band].Celdas}]`);
-    console.log(`CELDAS NO DISPONIBLES => `.red.bold);
-    console.log(`[${celdasNoDisponibles}]`);
-
-    if (Band == 81) {
-      return false;
-    }
-
-    if (!celdasNoDisponibles.length || !celdasNoDisponibles[0].length) {
-      console.log("No se encontraron celdas no disponibles.");
-      console.log(
-        `===============================================================================================`
-          .cyan.bold
-      );
-      return false;
-    }
-
-    const celdasNoDisponiblesLimpias = celdasNoDisponibles[0].map((celda) =>
-      celda.trim()
-    );
-    const areaCeldas = ComparacionCeldas;
-    areaFiltrado = areaCeldas.filter(
-      (celda) => !celdasNoDisponiblesLimpias.includes(celda)
-    );
-    console.log("area filtrado " + areaFiltrado);
-
-    if (areaFiltrado.length === 0) {
-      console.log(
-        `===============================================================================================`
-          .cyan.bold
-      );
-      return false;
-    }
-
-    console.log(`CELDAS DISPONIBLES => `.green.bold);
-    console.log(`["${areaFiltrado.join(", ")}"],`);
-    console.log(
-      `===============================================================================================`
-        .cyan.bold
-    );
-
-    const datos = areaFiltrado.join(", ");
-    const Filtrodelfriltro = [datos];
-    await MonitorearAreas(
-      page,
-      Areas[Band].NombreArea,
-      Areas[Band].Referencia,
-      Filtrodelfriltro
-    );
-
-    await page.waitForTimeout(500);
-    await clickContinuar(page, 1);
-
-    const resultado = await esperarResultadoMonitoreoArea(page, {
-      intervaloInicial: INTERVALO_PRIMERA_REVISION_MS,
-      intervaloSiguiente: INTERVALO_REVISION_AREA_MS,
-      etiqueta: `Reorganización ${Areas[Band].NombreArea}`,
-    });
-    if (resultado === "exito") {
-      console.log("✅ Área reorganizada y página avanzó correctamente.");
-      Correo(1, Areas[Band].NombreArea, Areas[Band].Referencia);
-      return true;
-    }
-
-    return false;
-  } catch (error) {
-    console.log("Error al reorganizar las celdas del área:", error);
+  if (Band == 81) {
     return false;
   }
+
+  for (let intento = 1; intento <= maxIntentos; intento++) {
+    try {
+      const celdasNoDisponibles = await page.$$eval("a.errorMsg", (links) => {
+        return links
+          .filter((link) =>
+            link.textContent.includes(
+              "Las siguientes celdas de selección no están disponibles:"
+            )
+          )
+          .map((link) =>
+            link.textContent
+              .split(": ")[1]
+              .split(",")
+              .map((celda) => celda.trim())
+          );
+      });
+
+      console.log(
+        `===============================================================================================`
+          .cyan.bold
+      );
+      console.log(`ÁREA COMPLETA => `.magenta.bold);
+      console.log(`[${Areas[Band].Celdas}]`);
+      console.log(`CELDAS NO DISPONIBLES => `.red.bold);
+      console.log(`[${celdasNoDisponibles}]`);
+
+      if (!celdasNoDisponibles.length || !celdasNoDisponibles[0].length) {
+        console.log("No se encontraron celdas no disponibles para filtrar.");
+        if (intento === 1) {
+          console.log("Intentando Continuar tras error de área...");
+          await clickContinuarArea(page, 1);
+          const resultadoSinFiltro = await esperarResultadoMonitoreoArea(page, {
+            intervaloInicial: INTERVALO_PRIMERA_REVISION_MS,
+            intervaloSiguiente: INTERVALO_REVISION_AREA_MS,
+            etiqueta: `Reorganización ${Areas[Band].NombreArea}`,
+          });
+          if (resultadoSinFiltro === "exito") {
+            Correo(1, Areas[Band].NombreArea, Areas[Band].Referencia);
+            return true;
+          }
+        }
+        console.log(
+          `===============================================================================================`
+            .cyan.bold
+        );
+        break;
+      }
+
+      const celdasNoDisponiblesLimpias = celdasNoDisponibles[0].map((celda) =>
+        celda.trim()
+      );
+      const areaCeldas = ComparacionCeldas?.length
+        ? ComparacionCeldas
+        : Areas[Band].Celdas[0].split(",").map((celda) => celda.trim());
+      areaFiltrado = areaCeldas.filter(
+        (celda) => !celdasNoDisponiblesLimpias.includes(celda)
+      );
+      console.log("area filtrado " + areaFiltrado);
+
+      if (areaFiltrado.length === 0) {
+        console.log(
+          `===============================================================================================`
+            .cyan.bold
+        );
+        return false;
+      }
+
+      console.log(`CELDAS DISPONIBLES => `.green.bold);
+      console.log(`["${areaFiltrado.join(", ")}"],`);
+      console.log(
+        `===============================================================================================`
+          .cyan.bold
+      );
+
+      const datos = areaFiltrado.join(", ");
+      await MonitorearAreas(
+        page,
+        Areas[Band].NombreArea,
+        Areas[Band].Referencia,
+        [datos]
+      );
+      ComparacionCeldas = areaFiltrado;
+
+      console.log(
+        `Reorganización intento ${intento}/${maxIntentos}: clic en Continuar...`
+      );
+      await clickContinuarArea(page, 1);
+
+      const resultado = await esperarResultadoMonitoreoArea(page, {
+        intervaloInicial: INTERVALO_PRIMERA_REVISION_MS,
+        intervaloSiguiente: INTERVALO_REVISION_AREA_MS,
+        etiqueta: `Reorganización ${Areas[Band].NombreArea} #${intento}`,
+      });
+
+      if (resultado === "exito") {
+        console.log("✅ Área reorganizada y página avanzó correctamente.");
+        Correo(1, Areas[Band].NombreArea, Areas[Band].Referencia);
+        return true;
+      }
+
+      if (resultado === "error" && intento < maxIntentos) {
+        console.log("Persisten errores en celdas; reintentando reorganización...");
+        continue;
+      }
+
+      if (resultado === "pendiente" || resultado === "timeout") {
+        console.log("✅ Celdas reorganizadas y Continuar enviado.");
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.log("Error al reorganizar las celdas del área:", error.message);
+      return false;
+    }
+  }
+
+  return false;
 }
 
 async function Detalles_de_area(page) {
@@ -1718,12 +1945,15 @@ function Mineria(browser, Pin,) {
 
     clearTimeout(Primerpaso);
 
-    let Segundopaso = setTimeout(() => {
-      console.log("ENTRO EN EL Segundopaso");
-      page.close();
-      Mineria(browser, Pin);
-    }, 30000);
-    timersActivos.push(Segundopaso);
+    let Segundopaso = null;
+    if (manual != 1) {
+      Segundopaso = setTimeout(() => {
+        console.log("ENTRO EN EL Segundopaso");
+        page.close();
+        Mineria(browser, Pin);
+      }, 30000);
+      timersActivos.push(Segundopaso);
+    }
 
     if (Agente == 1) {
       await Agente_Selecion_Empresa(page);
@@ -1731,11 +1961,12 @@ function Mineria(browser, Pin,) {
 
     const { closestDateOption, input } = await seleccionar_Pin(page, Pin, 0);
 
-    if (sigueEnPantallaPin(page) || (await detectarErrorPinObligatorio(page))) {
+    if (manual == 1) {
+      await esperarPantallaAreas(page);
+    } else if (sigueEnPantallaPin(page) || (await detectarErrorPinObligatorio(page))) {
       console.log("🔴 Sigue en pantalla PIN. Reintentando empresa y PIN...");
       await recuperarEmpresaYPin(page, Pin);
-      await clickContinuar(page, 1);
-      await page.waitForTimeout(1000);
+      await avanzarDesdePin(page);
 
       if (sigueEnPantallaPin(page) || (await detectarErrorPinObligatorio(page))) {
         console.log("No se pudo avanzar desde PIN. Reiniciando...");
@@ -1744,15 +1975,21 @@ function Mineria(browser, Pin,) {
       }
     }
 
-    // await Minerales(page);
+    await asegurarMineralesColocados(page, {
+      timeout: 5000,
+      etiqueta: "pre-áreas",
+      soloSiError: true,
+    });
 
-    clearTimeout(Segundopaso);
+    if (Segundopaso) clearTimeout(Segundopaso);
 
 
 
     // var IdArea = "";
     ContadorVueltas++;
     // var Celda = 0;
+
+    page.setDefaultTimeout(30000);
 
     const selectArea = await page.$('select[name="areaOfConcessionSlct"]');
     await selectArea.type("Otro tipo de terreno");
@@ -1787,8 +2024,7 @@ function Mineria(browser, Pin,) {
       if (sigueEnPantallaPin(page) || (await detectarErrorPinObligatorio(page))) {
         console.log("🔴 Detectado en pantalla PIN durante monitoreo. Recuperando...");
         await recuperarEmpresaYPin(page, Pin);
-        await clickContinuar(page, 1);
-        await page.waitForTimeout(1000);
+        await avanzarDesdePin(page);
 
         if (sigueEnPantallaPin(page) || (await detectarErrorPinObligatorio(page))) {
           await reiniciarMineria(browser, Pin, page, timersActivos);
@@ -1799,8 +2035,7 @@ function Mineria(browser, Pin,) {
       console.log("Inicia el timer de seguridad (TimeArea)");
       TimeArea = setTimeout(() => {
         console.log("ENTRO EN EL TimeArea");
-        page.close();
-        Mineria(browser, Pin);
+        reiniciarMineriaDesdeTimer(browser, Pin, page, "TimeArea");
       }, TIMEAREA_REINICIO_MS);
 
       console.log("Bandera: " + Band);
@@ -1817,8 +2052,7 @@ function Mineria(browser, Pin,) {
       );
 
       ComparacionCeldas = DetallesCompletos.AreaCeldas;
-      await page.waitForTimeout(3000);
-      await clickContinuar(page, 1);
+      await clickContinuarArea(page, 1);
 
       console.log(
         `Monitoreando área ${Areas[Band].NombreArea} durante ${MONITOREO_AREA_MS / 1000} segundos...`
@@ -1882,12 +2116,27 @@ function Mineria(browser, Pin,) {
         break;
       }
 
+      if (resultadoEntreAreas === "reorganizado") {
+        clearTimeout(TimeArea);
+        break;
+      }
+
       console.log("limpia el timer");
       clearTimeout(TimeArea);
 
       } catch (error) {
         console.error("❌ Error en monitoreo de áreas:", error.message);
-        await reiniciarMineria(browser, Pin, page, [...timersActivos, TimeArea]);
+        if (TimeArea) clearTimeout(TimeArea);
+        if (estaEnFlujoRadicacion(page)) {
+          console.log(
+            "✅ Ya pasó a radicar; continuando el wizard sin reiniciar."
+          );
+          break;
+        }
+        await reiniciarMineria(browser, Pin, page, [
+          ...timersActivos,
+          TimeArea,
+        ]);
         return;
       }
 
@@ -1922,8 +2171,7 @@ function Mineria(browser, Pin,) {
     clearTimeout(TimeNOpaso);
     let RadiPrimero = setTimeout(() => {
       console.log("ENTRO EN EL RadiPrimero");
-      page.close();
-      Mineria(browser, Pin);
+      reiniciarMineriaDesdeTimer(browser, Pin, page, "RadiPrimero");
     }, 30000);
 
     try {
@@ -2100,6 +2348,18 @@ function Mineria(browser, Pin,) {
 
     } catch (error) {
       console.error("❌ Error fatal en Mineria:", error.message);
+      if (estaEnFlujoRadicacion(page)) {
+        console.log(
+          "✅ Error en flujo de radicación; no se reinicia para no perder el avance."
+        );
+        return;
+      }
+      if (await debeOmitirReinicioModoManual(page)) {
+        console.log(
+          "✅ Modo manual: error durante navegación; no se reinicia. Espere o navegue hasta áreas."
+        );
+        return;
+      }
       await reiniciarMineria(browser, Pin, page, timersActivos);
     }
   })();
