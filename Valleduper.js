@@ -804,10 +804,10 @@ async function intentarReorganizarArea(page) {
         `===============================================================================================`
           .cyan.bold
       );
-      console.log(`ÁREA COMPLETA => `.magenta.bold);
-      console.log(`[${Areas[Band].Celdas}]`);
-      console.log(`CELDAS NO DISPONIBLES => `.red.bold);
-      console.log(`[${celdasNoDisponibles}]`);
+      // console.log(`ÁREA COMPLETA => `.magenta.bold);
+      // console.log(`[${Areas[Band].Celdas}]`);
+      // console.log(`CELDAS NO DISPONIBLES => `.red.bold);
+      // console.log(`[${celdasNoDisponibles}]`);
 
       if (!celdasNoDisponibles.length || !celdasNoDisponibles[0].length) {
         console.log("No se encontraron celdas no disponibles para filtrar.");
