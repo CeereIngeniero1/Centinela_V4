@@ -2264,9 +2264,10 @@ function Mineria(browser, Pin,) {
     }
 
     const continPag = await page.$x('//span[contains(.,"Continuar")]');
-   
-
     
+
+    //CORREO RADICACION
+    Correo(2, Areas[Band].NombreArea, Areas[Band].Referencia);
     await page.waitForTimeout(180000);
     Mineria(browser, Pin);
 
