@@ -24,9 +24,9 @@ console.log(" Nombre del equipo: ", NombreEquipo);
 const EquipoActual = EquiposGenerales[NombreEquipo];
 console.log(" Equipo Actual: ", EquipoActual);
 
-const Empresa = "Valleduper";
-const CodigoPin = "V1";
-const ARCHIVO_AREAS = "509139";
+const Empresa = "Collective";
+const CodigoPin = "Co";
+const ARCHIVO_AREAS = "508750";
 const DASHBOARD_URL = "https://annamineria.anm.gov.co/sigm/index.html#/extDashboard";
 const ESPERA_DASHBOARD_MS = 3000;
 const MAX_INTENTOS_DASHBOARD = 3;
@@ -65,8 +65,8 @@ const Datos_Contadores = Contadores[Empresa];
 
 const user1 = Datos_Empresa.Codigo;
 const pass1 = Datos_Empresa.Contraseña;
-const user2 = '97295';
-const pass2 = 'FR3P3RTM2026$';
+const user2 = '96233';
+const pass2 = 'SuperAgente86*';
 const Agente = 1;
 const manual = 0; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
 var EnviarCorreosParaPestanas = 0;
@@ -805,10 +805,10 @@ async function intentarReorganizarArea(page) {
         `===============================================================================================`
           .cyan.bold
       );
-      console.log(`ÁREA COMPLETA => `.magenta.bold);
-      console.log(`[${Areas[Band].Celdas}]`);
-      console.log(`CELDAS NO DISPONIBLES => `.red.bold);
-      console.log(`[${celdasNoDisponibles}]`);
+      // console.log(`ÁREA COMPLETA => `.magenta.bold);
+      // console.log(`[${Areas[Band].Celdas}]`);
+      // console.log(`CELDAS NO DISPONIBLES => `.red.bold);
+      // console.log(`[${celdasNoDisponibles}]`);
 
       if (!celdasNoDisponibles.length || !celdasNoDisponibles[0].length) {
         console.log("No se encontraron celdas no disponibles para filtrar.");

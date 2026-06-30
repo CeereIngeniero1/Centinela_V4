@@ -1,2 +1,2 @@
 
-start /d "../../../../" node "Operadora.js"
+start /d "../../../../" node "Operadora Gamboa.js"
