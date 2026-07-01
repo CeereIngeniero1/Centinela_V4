@@ -68,7 +68,7 @@ const pass1 = Datos_Empresa.Contraseña;
 const user2 = '83401';
 const pass2 = 'G64J1R4M4XR3S2026$';
 const Agente = 1;
-const manual = 1; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
+const manual = 0; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
 var EnviarCorreosParaPestanas = 0;
 var CorreoAvisoLoginEnviado = false;
 var contreapertura = 0;

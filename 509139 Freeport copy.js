@@ -26,7 +26,7 @@ console.log(" Equipo Actual: ", EquipoActual);
 
 const Empresa = "Valleduper";
 const CodigoPin = "V1";
-const ARCHIVO_AREAS = "509139 prueba";
+const ARCHIVO_AREAS = "509139 copy";
 const DASHBOARD_URL = "https://annamineria.anm.gov.co/sigm/index.html#/extDashboard";
 const ESPERA_DASHBOARD_MS = 3000;
 const MAX_INTENTOS_DASHBOARD = 3;
@@ -39,7 +39,7 @@ const RUTAS_FLUJO_RADICACION = [
 const MONITOREO_AREA_MS = 30 * 1000;
 const INTERVALO_PRIMERA_REVISION_MS = 1 * 1000;
 const INTERVALO_REVISION_AREA_MS = 5 * 1000;
-const ESPERA_ENTRE_AREAS_MS = 30 * 1000;
+const ESPERA_ENTRE_AREAS_MS = 1000;
 const INTERVALO_REVISION_ENTRE_AREAS_MS = 3 * 1000;
 const TIMEAREA_REINICIO_MS = 5 * 60 * 1000;
 const ESPERA_ANTES_CONTINUAR_AREA_MS = 400;
