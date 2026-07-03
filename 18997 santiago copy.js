@@ -24,9 +24,9 @@ console.log(" Nombre del equipo: ", NombreEquipo);
 const EquipoActual = EquiposGenerales[NombreEquipo];
 console.log(" Equipo Actual: ", EquipoActual);
 
-const Empresa = "Valleduper";
-const CodigoPin = "V1";
-const ARCHIVO_AREAS = "509139 prueba";
+const Empresa = "Collective";
+const CodigoPin = "Co";
+const ARCHIVO_AREAS = "18997";
 const DASHBOARD_URL = "https://annamineria.anm.gov.co/sigm/index.html#/extDashboard";
 const ESPERA_DASHBOARD_MS = 3000;
 const MAX_INTENTOS_DASHBOARD = 3;
@@ -39,7 +39,8 @@ const RUTAS_FLUJO_RADICACION = [
 const MONITOREO_AREA_MS = 30 * 1000;
 const INTERVALO_PRIMERA_REVISION_MS = 1 * 1000;
 const INTERVALO_REVISION_AREA_MS = 5 * 1000;
-const ESPERA_ENTRE_AREAS_MS = 30 * 1000;
+const ESPERA_ENTRE_AREAS_MS = 1000;
+// const ESPERA_ENTRE_AREAS_MS = 30 * 1000;
 const INTERVALO_REVISION_ENTRE_AREAS_MS = 3 * 1000;
 const TIMEAREA_REINICIO_MS = 5 * 60 * 1000;
 const ESPERA_ANTES_CONTINUAR_AREA_MS = 400;
@@ -66,8 +67,8 @@ const user1 = Datos_Empresa.Codigo;
 const pass1 = Datos_Empresa.Contraseña;
 const user2 = '96233';
 const pass2 = 'SuperAgente86*';
-const Agente = 0;
-const manual = 0; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
+const Agente = 1;
+const manual = 1; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
 var EnviarCorreosParaPestanas = 0;
 var CorreoAvisoLoginEnviado = false;
 var contreapertura = 0;
@@ -129,9 +130,6 @@ async function Login(page) {
     if (!CorreoAvisoLoginEnviado) {
       console.log(
         "Han pasado 2 minutos esperando el login manual. Enviando correo de aviso..."
-      );
-      console.log(
-        "PRIMER time"
       );
       Correo(7, "", "");
       CorreoAvisoLoginEnviado = true;
@@ -807,10 +805,10 @@ async function intentarReorganizarArea(page) {
         `===============================================================================================`
           .cyan.bold
       );
-      console.log(`ÁREA COMPLETA => `.magenta.bold);
-      console.log(`[${Areas[Band].Celdas}]`);
-      console.log(`CELDAS NO DISPONIBLES => `.red.bold);
-      console.log(`[${celdasNoDisponibles}]`);
+      // console.log(`ÁREA COMPLETA => `.magenta.bold);
+      // console.log(`[${Areas[Band].Celdas}]`);
+      // console.log(`CELDAS NO DISPONIBLES => `.red.bold);
+      // console.log(`[${celdasNoDisponibles}]`);
 
       if (!celdasNoDisponibles.length || !celdasNoDisponibles[0].length) {
         console.log("No se encontraron celdas no disponibles para filtrar.");
@@ -1926,9 +1924,7 @@ function Mineria(browser, Pin,) {
 
     let Primerpaso = setTimeout(() => {
       console.log("ENTRO EN EL PRIMERPASO (timeout de login manual)");
-      console.log(
-        "SEGUNDO time"
-      );
+
       page.close();
       Mineria(browser, Pin);
     }, 30 * 60 * 1000);
@@ -1954,7 +1950,6 @@ function Mineria(browser, Pin,) {
     if (manual != 1) {
       Segundopaso = setTimeout(() => {
         console.log("ENTRO EN EL Segundopaso");
-        console.log("TERCER time");
         page.close();
         Mineria(browser, Pin);
       }, 30000);
@@ -2041,7 +2036,6 @@ function Mineria(browser, Pin,) {
       console.log("Inicia el timer de seguridad (TimeArea)");
       TimeArea = setTimeout(() => {
         console.log("ENTRO EN EL TimeArea");
-        console.log("CUARTO time");
         reiniciarMineriaDesdeTimer(browser, Pin, page, "TimeArea");
       }, TIMEAREA_REINICIO_MS);
 
@@ -2153,9 +2147,6 @@ function Mineria(browser, Pin,) {
     let TimeNOpaso = setTimeout(() => {
       bandera = 99;
       console.log("ENTRO EN EL TimeNOpaso");
-      console.log(
-        "QUINTO time"
-      );
       page.close();
       Mineria(browser, Pin);
     }, 20000);
@@ -2181,7 +2172,6 @@ function Mineria(browser, Pin,) {
     clearTimeout(TimeNOpaso);
     let RadiPrimero = setTimeout(() => {
       console.log("ENTRO EN EL RadiPrimero");
-      console.log("SEXTO time");
       reiniciarMineriaDesdeTimer(browser, Pin, page, "RadiPrimero");
     }, 30000);
 
@@ -2253,7 +2243,12 @@ function Mineria(browser, Pin,) {
 
 
     clearTimeout(RadiPrimero);
-    
+    let Radisegundo = setTimeout(() => {
+      console.log("ENTRO EN EL Radisegundo");
+      //page.close();
+      Mineria(browser, Pin);
+    }, 10000);
+
 
     await Certificado_Shapefile(page, Empresa, Areas[Band].NombreArea);
 
@@ -2269,7 +2264,8 @@ function Mineria(browser, Pin,) {
     }
 
     const continPag = await page.$x('//span[contains(.,"Continuar")]');
- 
+   
+
 
     //CORREO RADICACION
     Correo(2, Areas[Band].NombreArea, Areas[Band].Referencia);
