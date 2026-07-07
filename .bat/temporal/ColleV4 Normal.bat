@@ -1,0 +1,1 @@
+start /d "../../../" node "ColleV4 Normal.js"
