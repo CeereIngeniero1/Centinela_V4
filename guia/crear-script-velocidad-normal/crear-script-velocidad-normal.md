@@ -252,5 +252,6 @@ C:\Centinela_V4\
 ├── Documentos\{Empresa}\                         # Shapefiles y certificados
 ├── .bat\Monitoreo\                               # Lanzadores monitoreo
 ├── .bat\Competencias\                            # Lanzadores competencia
-└── guia\                                         # Esta guía
+└── guia\
+    └── crear-script-velocidad-normal\            # Esta guía (MD y PDF)
 ```
