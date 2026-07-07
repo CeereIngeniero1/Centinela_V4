@@ -25,7 +25,7 @@ const EquipoActual = EquiposGenerales[NombreEquipo];
 console.log(" Equipo Actual: ", EquipoActual);
 
 const Empresa = "Valleduper";
-const CodigoPin = "Vl";
+const CodigoPin = "V1";
 const ARCHIVO_AREAS = "Max";
 const DASHBOARD_URL = "https://annamineria.anm.gov.co/sigm/index.html#/extDashboard";
 const ESPERA_DASHBOARD_MS = 3000;
