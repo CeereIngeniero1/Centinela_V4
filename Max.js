@@ -26,7 +26,7 @@ console.log(" Equipo Actual: ", EquipoActual);
 
 const Empresa = "Valleduper";
 const CodigoPin = "V1";
-const ARCHIVO_AREAS = "509139";
+const ARCHIVO_AREAS = "Max";
 const DASHBOARD_URL = "https://annamineria.anm.gov.co/sigm/index.html#/extDashboard";
 const ESPERA_DASHBOARD_MS = 3000;
 const MAX_INTENTOS_DASHBOARD = 3;
@@ -39,8 +39,7 @@ const RUTAS_FLUJO_RADICACION = [
 const MONITOREO_AREA_MS = 30 * 1000;
 const INTERVALO_PRIMERA_REVISION_MS = 1 * 1000;
 const INTERVALO_REVISION_AREA_MS = 5 * 1000;
-const ESPERA_ENTRE_AREAS_MS = 1000;
-// const ESPERA_ENTRE_AREAS_MS = 30 * 1000;
+const ESPERA_ENTRE_AREAS_MS = 30 * 1000;
 const INTERVALO_REVISION_ENTRE_AREAS_MS = 3 * 1000;
 const TIMEAREA_REINICIO_MS = 5 * 60 * 1000;
 const ESPERA_ANTES_CONTINUAR_AREA_MS = 400;
@@ -65,10 +64,10 @@ const Datos_Contadores = Contadores[Empresa];
 
 const user1 = Datos_Empresa.Codigo;
 const pass1 = Datos_Empresa.Contraseña;
-const user2 = '83401';
-const pass2 = 'G64J1R4M4XR3S2026$';
+const user2 = '91311';
+const pass2 = 'pW0*kC1*rQ';
 const Agente = 1;
-const manual = 1; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
+const manual = 0; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
 var EnviarCorreosParaPestanas = 0;
 var CorreoAvisoLoginEnviado = false;
 var contreapertura = 0;
@@ -805,10 +804,10 @@ async function intentarReorganizarArea(page) {
         `===============================================================================================`
           .cyan.bold
       );
-      console.log(`ÁREA COMPLETA => `.magenta.bold);
-      console.log(`[${Areas[Band].Celdas}]`);
-      console.log(`CELDAS NO DISPONIBLES => `.red.bold);
-      console.log(`[${celdasNoDisponibles}]`);
+      // console.log(`ÁREA COMPLETA => `.magenta.bold);
+      // console.log(`[${Areas[Band].Celdas}]`);
+      // console.log(`CELDAS NO DISPONIBLES => `.red.bold);
+      // console.log(`[${celdasNoDisponibles}]`);
 
       if (!celdasNoDisponibles.length || !celdasNoDisponibles[0].length) {
         console.log("No se encontraron celdas no disponibles para filtrar.");

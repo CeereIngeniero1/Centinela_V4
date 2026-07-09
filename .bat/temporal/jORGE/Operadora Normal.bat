@@ -1,0 +1,1 @@
+start /d "../../../" node "Operadora Normal.js"
