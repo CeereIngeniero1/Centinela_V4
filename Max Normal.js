@@ -64,9 +64,9 @@ const Datos_Contadores = Contadores[Empresa];
 
 const user1 = Datos_Empresa.Codigo;
 const pass1 = Datos_Empresa.Contraseña;
-const user2 = '91311';
-const pass2 = 'pW0*kC1*rQ';
-const Agente = 1;
+const user2 = '';
+const pass2 = '';
+const Agente = 0;
 const manual = 0; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
 const continuarManual = 0; // 1 = el bot solo coloca datos; el humano hace clic en Continuar; 0 = bot también da Continuar
 if (continuarManual == 1) {
