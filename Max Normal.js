@@ -69,9 +69,16 @@ const pass2 = '';
 const Agente = 0;
 const manual = 0; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
 const continuarManual = 0; // 1 = el bot solo coloca datos; el humano hace clic en Continuar; 0 = bot también da Continuar
+const continuarAreaManual = 1; // 1 = el humano da Continuar después de colocar el área; 0 = clic automático
 if (continuarManual == 1) {
   console.log(
     "⚙️ continuarManual=1: el bot colocará datos y esperará tu clic en Continuar."
+      .cyan.bold
+  );
+}
+if (continuarAreaManual == 1) {
+  console.log(
+    "⚙️ continuarAreaManual=1: después de colocar el área, el bot esperará tu clic en Continuar."
       .cyan.bold
   );
 }
@@ -322,6 +329,17 @@ async function clickContinuarVerificandoMinerales(page, indice = 1) {
 }
 
 async function clickContinuarArea(page, indice = 1) {
+  if (continuarAreaManual == 1) {
+    await esperarContinuarHumano(page, "Área colocada");
+    await page.waitForTimeout(ESPERA_ANTES_CONTINUAR_AREA_MS);
+    if (await detectarErrorMineralesObligatorio(page)) {
+      await corregirMineralesSiObligatorio(page);
+      await esperarContinuarHumano(page, "Área corregida");
+    }
+    console.log("✅ Continuar del área detectado; esperando navegación o respuesta del portal.".green);
+    return;
+  }
+
   console.log("Clic en Continuar tras colocar área...");
   await clickContinuar(page, indice, 5000);
   await page.waitForTimeout(ESPERA_ANTES_CONTINUAR_AREA_MS);
@@ -507,13 +525,14 @@ async function esperarPantallaAreas(page) {
 }
 
 async function debeOmitirReinicioModoManual(page) {
-  if (manual != 1 && continuarManual != 1) return false;
+  if (manual != 1 && continuarManual != 1 && continuarAreaManual != 1) return false;
   if (continuarManual == 1) return true;
   if (estaEnFlujoRadicacion(page)) return true;
   try {
     if (!page) return true;
     if (sigueEnPantallaPin(page)) return true;
     const selectArea = await page.$('select[name="areaOfConcessionSlct"]');
+    if (continuarAreaManual == 1 && selectArea) return true;
     if (!selectArea) return true;
   } catch (error) {
     return true;
@@ -2105,14 +2124,14 @@ function Mineria(browser, Pin,) {
 
       console.log("Inicia el timer de seguridad (TimeArea)");
       TimeArea = null;
-      if (continuarManual != 1) {
+      if (continuarManual != 1 && continuarAreaManual != 1) {
         TimeArea = setTimeout(() => {
           console.log("ENTRO EN EL TimeArea");
           reiniciarMineriaDesdeTimer(browser, Pin, page, "TimeArea");
         }, TIMEAREA_REINICIO_MS);
       } else {
         console.log(
-          "⏳ continuarManual activo: TimeArea desactivado mientras el humano controla Continuar."
+          "⏳ Modo manual de Continuar activo: TimeArea desactivado mientras el humano controla el área."
         );
       }
 

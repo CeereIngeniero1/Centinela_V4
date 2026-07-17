@@ -68,6 +68,20 @@ const user2 = '91311';
 const pass2 = 'pW0*kC1*rQ';
 const Agente = 0;
 const manual = 0; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
+const continuarManual = 1; // 1 = el bot solo coloca datos; el humano hace clic en Continuar; 0 = bot también da Continuar
+const continuarAreaManual = 1; // 1 = el humano da Continuar después de colocar el área; 0 = clic automático
+if (continuarManual == 1) {
+  console.log(
+    "⚙️ continuarManual=1: el bot colocará datos y esperará tu clic en Continuar."
+      .cyan.bold
+  );
+}
+if (continuarAreaManual == 1) {
+  console.log(
+    "⚙️ continuarAreaManual=1: después de colocar el área, el bot esperará tu clic en Continuar."
+      .cyan.bold
+  );
+}
 var EnviarCorreosParaPestanas = 0;
 var CorreoAvisoLoginEnviado = false;
 var contreapertura = 0;
@@ -262,7 +276,7 @@ async function detectarErrorMineralesObligatorio(page) {
 }
 
 async function asegurarMineralesColocados(page, opciones = {}) {
-  const timeout = opciones.timeout ?? (manual == 1 ? 0 : 15000);
+  const timeout = opciones.timeout ?? (manual == 1 || continuarManual == 1 ? 0 : 15000);
   const etiqueta = opciones.etiqueta ? `[${opciones.etiqueta}] ` : "";
   const soloSiError = opciones.soloSiError ?? false;
 
@@ -315,6 +329,17 @@ async function clickContinuarVerificandoMinerales(page, indice = 1) {
 }
 
 async function clickContinuarArea(page, indice = 1) {
+  if (continuarAreaManual == 1) {
+    await esperarContinuarHumano(page, "Área colocada");
+    await page.waitForTimeout(ESPERA_ANTES_CONTINUAR_AREA_MS);
+    if (await detectarErrorMineralesObligatorio(page)) {
+      await corregirMineralesSiObligatorio(page);
+      await esperarContinuarHumano(page, "Área corregida");
+    }
+    console.log("✅ Continuar del área detectado; esperando navegación o respuesta del portal.".green);
+    return;
+  }
+
   console.log("Clic en Continuar tras colocar área...");
   await clickContinuar(page, indice, 5000);
   await page.waitForTimeout(ESPERA_ANTES_CONTINUAR_AREA_MS);
@@ -391,7 +416,61 @@ async function reiniciarMineria(browser, Pin, page, timers = []) {
   return true;
 }
 
+async function instalarDetectorContinuarHumano(page) {
+  await page.evaluate(() => {
+    window.__centinelaContinuarHumano = false;
+    if (window.__centinelaContinuarBound) return;
+    window.__centinelaContinuarBound = true;
+    document.addEventListener(
+      "click",
+      (e) => {
+        const path = typeof e.composedPath === "function" ? e.composedPath() : [];
+        const candidatos = path.length ? path : [e.target];
+        for (const el of candidatos) {
+          if (!el || el.nodeType !== 1) continue;
+          const txt = (el.textContent || "").replace(/\s+/g, " ").trim();
+          if (
+            (el.tagName === "SPAN" && txt === "Continuar") ||
+            ((el.tagName === "BUTTON" || el.tagName === "A") &&
+              txt.includes("Continuar") &&
+              txt.length < 40)
+          ) {
+            window.__centinelaContinuarHumano = true;
+            return;
+          }
+        }
+      },
+      true
+    );
+  });
+}
+
+async function esperarContinuarHumano(page, etiqueta = "") {
+  const prefijo = etiqueta ? `[${etiqueta}] ` : "";
+  console.log(
+    `⏳ ${prefijo}Modo manual: haga clic en Continuar. El bot espera...`.yellow
+  );
+  await page.waitForXPath('//span[contains(.,"Continuar")]', {
+    visible: true,
+    timeout: 0,
+  });
+  await instalarDetectorContinuarHumano(page);
+  await page.evaluate(() => {
+    window.__centinelaContinuarHumano = false;
+  });
+  await page.waitForFunction(() => window.__centinelaContinuarHumano === true, {
+    timeout: 0,
+  });
+  await page.waitForTimeout(500);
+  console.log(`✅ ${prefijo}Continuar detectado (clic humano).`.green);
+}
+
 async function clickContinuar(page, indice = 1, timeout = 15000) {
+  if (continuarManual == 1) {
+    await esperarContinuarHumano(page);
+    return;
+  }
+
   await page.waitForXPath('//span[contains(.,"Continuar")]', {
     visible: true,
     timeout,
@@ -441,12 +520,14 @@ async function esperarPantallaAreas(page) {
 }
 
 async function debeOmitirReinicioModoManual(page) {
-  if (manual != 1) return false;
+  if (manual != 1 && continuarManual != 1 && continuarAreaManual != 1) return false;
+  if (continuarManual == 1) return true;
   if (estaEnFlujoRadicacion(page)) return true;
   try {
     if (!page) return true;
     if (sigueEnPantallaPin(page)) return true;
     const selectArea = await page.$('select[name="areaOfConcessionSlct"]');
+    if (continuarAreaManual == 1 && selectArea) return true;
     if (!selectArea) return true;
   } catch (error) {
     return true;
@@ -455,7 +536,7 @@ async function debeOmitirReinicioModoManual(page) {
 }
 
 async function avanzarDesdePin(page) {
-  if (manual == 1) {
+  if (manual == 1 || continuarManual == 1) {
     await esperarContinuarManualPin(page);
   } else {
     await page.waitForXPath('//span[contains(.,"Continuar")]');
@@ -551,11 +632,11 @@ async function seleccionar_Pin(page, Pin, Veces) {
   }
 
   const mineralesColocados = await asegurarMineralesColocados(page, {
-    timeout: manual == 1 ? 0 : 3000,
+    timeout: manual == 1 || continuarManual == 1 ? 0 : 3000,
     etiqueta: "post-PIN",
   });
 
-  if (manual == 1) {
+  if (manual == 1 || continuarManual == 1) {
     return { closestDateOption, input };
   }
 
@@ -1555,7 +1636,11 @@ async function Informacion_financiera(page) {
   }, Datos_Economicos);
 
   const continPag4 = await page.$x('//span[contains(.,"Continuar")]');
-  await continPag4[1].click();
+  if (continuarManual == 1) {
+    await clickContinuar(page, 1);
+  } else {
+    await continPag4[1].click();
+  }
 
 }
 
@@ -1946,7 +2031,7 @@ function Mineria(browser, Pin,) {
     clearTimeout(Primerpaso);
 
     let Segundopaso = null;
-    if (manual != 1) {
+    if (manual != 1 && continuarManual != 1) {
       Segundopaso = setTimeout(() => {
         console.log("ENTRO EN EL Segundopaso");
         page.close();
@@ -1961,7 +2046,7 @@ function Mineria(browser, Pin,) {
 
     const { closestDateOption, input } = await seleccionar_Pin(page, Pin, 0);
 
-    if (manual == 1) {
+    if (manual == 1 || continuarManual == 1) {
       await esperarPantallaAreas(page);
     } else if (sigueEnPantallaPin(page) || (await detectarErrorPinObligatorio(page))) {
       console.log("🔴 Sigue en pantalla PIN. Reintentando empresa y PIN...");
@@ -2033,10 +2118,17 @@ function Mineria(browser, Pin,) {
       }
 
       console.log("Inicia el timer de seguridad (TimeArea)");
-      TimeArea = setTimeout(() => {
-        console.log("ENTRO EN EL TimeArea");
-        reiniciarMineriaDesdeTimer(browser, Pin, page, "TimeArea");
-      }, TIMEAREA_REINICIO_MS);
+      TimeArea = null;
+      if (continuarManual != 1 && continuarAreaManual != 1) {
+        TimeArea = setTimeout(() => {
+          console.log("ENTRO EN EL TimeArea");
+          reiniciarMineriaDesdeTimer(browser, Pin, page, "TimeArea");
+        }, TIMEAREA_REINICIO_MS);
+      } else {
+        console.log(
+          "⏳ Modo manual de Continuar activo: TimeArea desactivado mientras el humano controla el área."
+        );
+      }
 
       console.log("Bandera: " + Band);
       const nombreAreaActual = Areas[Band].NombreArea;
@@ -2143,12 +2235,15 @@ function Mineria(browser, Pin,) {
     }
 
 
-    let TimeNOpaso = setTimeout(() => {
-      bandera = 99;
-      console.log("ENTRO EN EL TimeNOpaso");
-      page.close();
-      Mineria(browser, Pin);
-    }, 20000);
+    let TimeNOpaso = null;
+    if (continuarManual != 1) {
+      TimeNOpaso = setTimeout(() => {
+        bandera = 99;
+        console.log("ENTRO EN EL TimeNOpaso");
+        page.close();
+        Mineria(browser, Pin);
+      }, 20000);
+    }
 
 
     // while (bandera != 99) {
@@ -2168,11 +2263,14 @@ function Mineria(browser, Pin,) {
     // }
 
 
-    clearTimeout(TimeNOpaso);
-    let RadiPrimero = setTimeout(() => {
-      console.log("ENTRO EN EL RadiPrimero");
-      reiniciarMineriaDesdeTimer(browser, Pin, page, "RadiPrimero");
-    }, 30000);
+    if (TimeNOpaso) clearTimeout(TimeNOpaso);
+    let RadiPrimero = null;
+    if (continuarManual != 1) {
+      RadiPrimero = setTimeout(() => {
+        console.log("ENTRO EN EL RadiPrimero");
+        reiniciarMineriaDesdeTimer(browser, Pin, page, "RadiPrimero");
+      }, 30000);
+    }
 
     try {
       await Detalles_de_area(page);
@@ -2241,12 +2339,15 @@ function Mineria(browser, Pin,) {
 
 
 
-    clearTimeout(RadiPrimero);
-    let Radisegundo = setTimeout(() => {
-      console.log("ENTRO EN EL Radisegundo");
-      //page.close();
-      Mineria(browser, Pin);
-    }, 10000);
+    if (RadiPrimero) clearTimeout(RadiPrimero);
+    let Radisegundo = null;
+    if (continuarManual != 1) {
+      Radisegundo = setTimeout(() => {
+        console.log("ENTRO EN EL Radisegundo");
+        //page.close();
+        Mineria(browser, Pin);
+      }, 10000);
+    }
 
 
     await Certificado_Shapefile(page, Empresa, Areas[Band].NombreArea);
@@ -2263,9 +2364,13 @@ function Mineria(browser, Pin,) {
     }
 
     const continPag = await page.$x('//span[contains(.,"Continuar")]');
-    await continPag[1].click();
+    if (continuarManual == 1) {
+      await clickContinuar(page, 1);
+    } else {
+      await continPag[1].click();
+    }
 
-    clearTimeout(Radisegundo);
+    if (Radisegundo) clearTimeout(Radisegundo);
     await page.waitForNavigation({
       waitUntil: "networkidle0",
     });
@@ -2274,11 +2379,14 @@ function Mineria(browser, Pin,) {
 
 
 
-    let RadiTercero = setTimeout(() => {
-      console.log("ENTRO EN EL Radisegundo");
-      //page.close();
-      Mineria(browser, Pin);
-    }, 120000);
+    let RadiTercero = null;
+    if (continuarManual != 1) {
+      RadiTercero = setTimeout(() => {
+        console.log("ENTRO EN EL Radisegundo");
+        //page.close();
+        Mineria(browser, Pin);
+      }, 120000);
+    }
 
     //  await page.waitForTimeout(1000000);
 
@@ -2315,8 +2423,12 @@ function Mineria(browser, Pin,) {
         const posibleContinuar = await page.$x('//span[contains(.,"Continuar")]');
         if (posibleContinuar.length > 0) {
           console.log("⚠️ Se encontró el botón 'Continuar' en la página.");
-          console.log([posibleContinuar]);
-          await posibleContinuar[1].click();
+          if (continuarManual == 1) {
+            await clickContinuar(page, 1);
+          } else {
+            console.log([posibleContinuar]);
+            await posibleContinuar[1].click();
+          }
           await page.waitForNavigation({
             waitUntil: "networkidle0",
           });
