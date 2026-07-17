@@ -1,1 +1,0 @@
-start /d "../../../" node "509139 Sierra.js"
