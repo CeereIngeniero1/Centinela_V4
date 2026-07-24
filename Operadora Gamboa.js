@@ -704,6 +704,46 @@ async function Minerales(page) {
   }, listaMinerales);
 }
 
+async function seleccionarOpcionPorTexto(page, selector, textoParcial) {
+  await page.waitForSelector(selector, { visible: true, timeout: 30000 });
+  const ok = await page.evaluate(
+    ({ selector, textoParcial }) => {
+      const select = document.querySelector(selector);
+      if (!select) return { ok: false, motivo: "select no encontrado" };
+      const opciones = Array.from(select.options).map((o) =>
+        (o.textContent || "").trim()
+      );
+      const opcion = Array.from(select.options).find((option) =>
+        (option.textContent || "").includes(textoParcial)
+      );
+      if (!opcion) {
+        return { ok: false, motivo: "opcion no encontrada", opciones };
+      }
+      select.value = opcion.value;
+      if (window.angular) {
+        angular.element(select).triggerHandler("change");
+      }
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+      select.dispatchEvent(new Event("input", { bubbles: true }));
+      return { ok: true, valor: opcion.value, texto: opcion.textContent.trim() };
+    },
+    { selector, textoParcial }
+  );
+
+  if (!ok || !ok.ok) {
+    console.log("Opciones disponibles:", ok && ok.opciones ? ok.opciones : []);
+    throw new Error(
+      `No se pudo seleccionar "${textoParcial}" en ${selector}: ${
+        (ok && ok.motivo) || "error desconocido"
+      }`
+    );
+  }
+
+  console.log(`✅ Select ${selector} -> "${ok.texto}"`);
+  await page.waitForTimeout(600);
+  return ok;
+}
+
 async function MonitorearAreas(page, IdArea, Celda, Area) {
   //console.log(IdArea, Aviso, Celda, Comas);
 
@@ -2088,17 +2128,20 @@ function Mineria(browser, Pin,) {
 
     page.setDefaultTimeout(30000);
 
-    const selectArea = await page.$('select[name="areaOfConcessionSlct"]');
-    await selectArea.type("Otro tipo de terreno");
+    await seleccionarOpcionPorTexto(
+      page,
+      'select[name="areaOfConcessionSlct"]',
+      "Otro tipo de terreno"
+    );
 
     const continDetallesdelArea = await page.$x('//a[contains(.,"área")]');
     await continDetallesdelArea[4].click();
+    await page.waitForTimeout(800);
 
-    const selectporCeldas = await page.$(
-      'select[id="selectedCellInputMethodSlctId"]'
-    );
-    await selectporCeldas.type(
-      "Usando el mapa de selección para dibujar un polígono o ingresar celdas"
+    await seleccionarOpcionPorTexto(
+      page,
+      'select[id="selectedCellInputMethodSlctId"]',
+      "Usando el mapa de selección"
     );
     await page.waitForSelector("#cellIdsTxtId", { visible: true, timeout: 30000 });
     console.log("✅ Campo de celdas (#cellIdsTxtId) listo.");
