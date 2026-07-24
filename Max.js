@@ -289,6 +289,8 @@ async function asegurarMineralesColocados(page, opciones = {}) {
       visible: true,
       timeout,
     });
+    console.log(`${etiqueta}Esperando 1s antes de colocar minerales...`);
+    await page.waitForTimeout(1000);
     console.log(`${etiqueta}Colocando minerales...`);
     await Minerales(page);
     await page.waitForTimeout(500);
@@ -706,9 +708,14 @@ async function MonitorearAreas(page, IdArea, Celda, Area) {
   //console.log(IdArea, Aviso, Celda, Comas);
 
   const AreaCeldas = Area[0].split(',').map(celda => celda.trim());
+  await page.waitForSelector("#cellIdsTxtId", { visible: true, timeout: 30000 });
   await page.evaluate(
     ({ Area }) => {
-      document.querySelector('[id="cellIdsTxtId"]').value = Area.join("");
+      const campo = document.querySelector('[id="cellIdsTxtId"]');
+      if (!campo) {
+        throw new Error("No se encontró #cellIdsTxtId para colocar las celdas");
+      }
+      campo.value = Area.join("");
       angular
         .element(document.getElementById("cellIdsTxtId"))
         .triggerHandler("change");
@@ -2093,8 +2100,8 @@ function Mineria(browser, Pin,) {
     await selectporCeldas.type(
       "Usando el mapa de selección para dibujar un polígono o ingresar celdas"
     );
-
-
+    await page.waitForSelector("#cellIdsTxtId", { visible: true, timeout: 30000 });
+    console.log("✅ Campo de celdas (#cellIdsTxtId) listo.");
 
     while (true) {
       let TimeArea;
