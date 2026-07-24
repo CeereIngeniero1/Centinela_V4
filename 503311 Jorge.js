@@ -26,7 +26,7 @@ console.log(" Equipo Actual: ", EquipoActual);
 
 const Empresa = "Valleduper";
 const CodigoPin = "V2";
-const ARCHIVO_AREAS = "prueba";
+const ARCHIVO_AREAS = "503311";
 const DASHBOARD_URL = "https://annamineria.anm.gov.co/sigm/index.html#/extDashboard";
 const ESPERA_DASHBOARD_MS = 3000;
 const MAX_INTENTOS_DASHBOARD = 3;
@@ -1726,10 +1726,8 @@ async function Certificado_Shapefile(page, Empresa, IdArea) {
 
     // Subir certificado
     let ArchivoAmbiental;
-   
-    
     ArchivoAmbiental = `./Documentos/${Empresa}/CertificadoAmbiental/${IdArea}.pdf`;
-    console.log(ArchivoAmbiental);
+
 
     await page.waitForSelector(`#p_CaaCataEnvMandatoryDocumentToAttachId1`);
     const RutaDelCertificado = ArchivoAmbiental;
@@ -2421,17 +2419,115 @@ function Mineria(browser, Pin,) {
     }
 
     const continPag = await page.$x('//span[contains(.,"Continuar")]');
-   
+    if (continuarManual == 1) {
+      await clickContinuar(page, 1);
+    } else {
+      await continPag[1].click();
+    }
+
+    if (Radisegundo) clearTimeout(Radisegundo);
+    await page.waitForNavigation({
+      waitUntil: "networkidle0",
+    });
+    console.log(" si navego ");
 
 
-  
-   
-  
 
 
+    let RadiTercero = null;
+    if (continuarManual != 1) {
+      RadiTercero = setTimeout(() => {
+        console.log("ENTRO EN EL Radisegundo");
+        //page.close();
+        Mineria(browser, Pin);
+      }, 120000);
+    }
+
+    //  await page.waitForTimeout(1000000);
+
+
+    while (true) {
+
+      let resultado = await RECAPTCHA(page);
+      if (resultado == 1) {
+        break;
+      }
+
+    }
+
+    var imagendeCaptcha = 0;
+    while (true) {
+      await page.waitForTimeout(1500);
+
+      if (page.url() === 'https://annamineria.anm.gov.co/sigm/index.html#/p_CaaIataSummary') {
+        let resultado = await verificarCaptchaResuelto(page, imagendeCaptcha);
+        if (resultado === 1) {
+          if (RadiTercero) clearTimeout(RadiTercero);
+          break;
+        } else if (resultado === 2) {
+          console.log("El captcha sigue en modo reto de imagenes");
+          Correo(6, Areas[Band].NombreArea, Areas[Band].Referencia);
+          // lO RETIRO PORQUE NO VALE LA PENA
+          // Mineria(browser, Pin);
+          imagendeCaptcha = 1;
+        } else {
+          // await RECAPTCHA(page);
+        }
+
+      } else if (page.url() === 'https://annamineria.anm.gov.co/sigm/index.html#/p_CaaIataAttachDocuments') {
+        const posibleContinuar = await page.$x('//span[contains(.,"Continuar")]');
+        if (posibleContinuar.length > 0) {
+          console.log("⚠️ Se encontró el botón 'Continuar' en la página.");
+          if (continuarManual == 1) {
+            await clickContinuar(page, 1);
+          } else {
+            console.log([posibleContinuar]);
+            await posibleContinuar[1].click();
+          }
+          await page.waitForNavigation({
+            waitUntil: "networkidle0",
+          });
+          await RECAPTCHA(page);
+        }
+      }
+    }
+
+    // await page.waitForTimeout(1000000);
+
+    console.log("51. Bóton Radicar");
+
+    const btnRadicar1 = await page.$x('//span[contains(.,"Radicar")]');
+    console.log("Este es el boton radicar : " + btnRadicar1);
+
+    console.log("Le di click");
+
+    try {
+      await btnRadicar1[1].click();
+    } catch (exepcion) {
+      console.log("La 1 tampoco Y_Y");
+    }
+
+
+    //CORREO RADICACION
+    Correo(2, Areas[Band].NombreArea, Areas[Band].Referencia);
+    await page.waitForTimeout(180000);
+    Mineria(browser, Pin);
 
     } catch (error) {
-     
+      console.error("❌ Error fatal en Mineria:", error.message);
+      if (estaEnFlujoRadicacion(page)) {
+        console.log(
+          "✅ Error en flujo de radicación; no se reinicia para no perder el avance."
+        );
+        return;
+      }
+      if (await debeOmitirReinicioModoManual(page)) {
+        console.log(
+          "✅ Modo manual: error durante navegación; no se reinicia. Espere o navegue hasta áreas."
+        );
+        return;
+      }
+      await reiniciarMineria(browser, Pin, page, timersActivos);
     }
   })();
 }
@@ -2492,8 +2588,8 @@ function Correo(Tipo, Area, Celda) {
 
   let mailOptions = {
     from: msg + '"Ceere" <correomineria2@ceere.net>', //Deje eso quieto Outlook porne demasiados problemas
-    //to: "jorgecalle@hotmail.com, jorgecaller@gmail.com, alexisaza@hotmail.com,  ceereweb@gmail.com, Soporte2ceere@gmail.com, soportee4@gmail.com, soporte.ceere06068@gmail.com",
-    to: '  Soporte2ceere@gmail.com',
+    to: "jorgecalle@hotmail.com, jorgecaller@gmail.com, alexisaza@hotmail.com,  ceereweb@gmail.com, Soporte2ceere@gmail.com, soportee4@gmail.com, soporte.ceere06068@gmail.com",
+    //to: '  Soporte2ceere@gmail.com',
     subject: "LA AREA ES-> " + Area,
     text: "LA AREA ES->  " + Area + "  " + Celda,
     html: `
