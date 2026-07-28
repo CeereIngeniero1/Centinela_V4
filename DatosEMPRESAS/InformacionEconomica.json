@@ -1,4 +1,10 @@
 {
+  "CARNEOLA": {
+    "pasivoCorrienteId0": 0,
+    "activoCorrienteId0": 0,
+    "pasivoTotalId0": 529000,
+    "activoTotalId0": 1093000
+  },
   "ARABANY": {
     "pasivoCorrienteId0": 758771,
     "activoCorrienteId0": 3620854,

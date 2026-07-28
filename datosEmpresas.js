@@ -16,4 +16,5 @@ module.exports = {
   Geologos: cargarJson("Geologos.json"),
   Contadores: cargarJson("Contadores.json"),
   Configuracion: cargarJson("Configuracion.json"),
+  Usuarios: cargarJson("Usuarios.json"),
 };

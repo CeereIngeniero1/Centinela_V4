@@ -1,0 +1,19 @@
+{
+  "CARNEOLA": {
+    "Membrillal": {
+      "Usuario": "37801",
+      "Clave": "Membri_2026*",
+      "Nombre": "Membrillal SOM"
+    },
+    "Sagitario": {
+      "Usuario": "43987",
+      "Clave": "Sagitario_2026**",
+      "Nombre": "Sagitario SOM"
+    },
+    "Quimbaya": {
+      "Usuario": "33268",
+      "Clave": "Quimbaya2026_**.",
+      "Nombre": "Quimbaya SOM"
+    }
+  }
+}
