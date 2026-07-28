@@ -24,9 +24,23 @@ console.log(" Nombre del equipo: ", NombreEquipo);
 const EquipoActual = EquiposGenerales[NombreEquipo];
 console.log(" Equipo Actual: ", EquipoActual);
 
-const Empresa = "Collective";
-const CodigoPin = "Co";
-const ARCHIVO_AREAS = "Celdas faltantes_513007";
+const radicadorCfg = require("./radicadorConfig");
+
+if (!radicadorCfg.isInitialized()) {
+  console.error(
+    "❌ Sin configuración. Ejecute radicadorBuscadorTitulos.js con todos los parámetros."
+  );
+  process.exit(1);
+}
+
+const {
+  Empresa,
+  CodigoPin,
+  ARCHIVO_AREAS,
+  Agente,
+  user2,
+  pass2,
+} = radicadorCfg;
 const DASHBOARD_URL = "https://annamineria.anm.gov.co/sigm/index.html#/extDashboard";
 const ESPERA_DASHBOARD_MS = 3000;
 const MAX_INTENTOS_DASHBOARD = 3;
@@ -49,13 +63,10 @@ const Pines = JSON.parse(
 const MineralesPorEmpresa = JSON.parse(
   fs.readFileSync(path.join(__dirname, "DatosEMPRESAS", "Minerales.json"), "utf-8")
 );
-const Areas = JSON.parse(
-  fs.readFileSync(
-    path.join(__dirname, "areas", `${ARCHIVO_AREAS}.json`),
-    "utf-8"
-  )
+const Areas = radicadorCfg.cargarAreas();
+console.log(
+  `Áreas cargadas: ${ARCHIVO_AREAS} desde ${radicadorCfg.rutaAreasUsada()} (${Areas.length} área(s))`
 );
-console.log(`Áreas cargadas: ${ARCHIVO_AREAS}.json (${Areas.length} áreas)`);
 const Datos_Empresa = Informacion_Empresas[Empresa];
 const Datos_Economicos = Informacion_Economica[Empresa];
 const Datos_Geologos = Geologos[Empresa];
@@ -64,12 +75,10 @@ const Datos_Contadores = Contadores[Empresa];
 
 const user1 = Datos_Empresa.Codigo;
 const pass1 = Datos_Empresa.Contraseña;
-const user2 = '96233';
-const pass2 = 'SuperAgente86*';
-const Agente = 0;
+
 const manual = 0; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
-const continuarManual = 1; // 1 = el bot solo coloca datos; el humano hace clic en Continuar; 0 = bot también da Continuar
-const continuarAreaManual = 1; // 1 = el humano da Continuar después de colocar el área; 0 = clic automático
+const continuarManual = 0; // 1 = el bot solo coloca datos; el humano hace clic en Continuar; 0 = bot también da Continuar
+const continuarAreaManual = 0; // 1 = el humano da Continuar después de colocar el área; 0 = clic automático
 if (continuarManual == 1) {
   console.log(
     "⚙️ continuarManual=1: el bot colocará datos y esperará tu clic en Continuar."
@@ -338,7 +347,10 @@ async function clickContinuarArea(page, indice = 1) {
       await corregirMineralesSiObligatorio(page);
       await esperarContinuarHumano(page, "Área corregida");
     }
-    console.log("✅ Continuar del área detectado; esperando navegación o respuesta del portal.".green);
+    console.log(
+      "✅ Continuar del área detectado; esperando navegación o respuesta del portal."
+        .green
+    );
     return;
   }
 
@@ -2419,12 +2431,13 @@ function Mineria(browser, Pin,) {
     }
 
     const continPag = await page.$x('//span[contains(.,"Continuar")]');
-    if (continuarManual == 1) {
-      await clickContinuar(page, 1);
-    } else if (continPag[1]) {
-      await continPag[1].click();
+  
+    try {
+      await btnRadicar1[1].click();
+    } catch (exepcion) {
+      console.log("La 1 tampoco Y_Y");
     }
-    if (Radisegundo) clearTimeout(Radisegundo);
+
 
     //CORREO RADICACION
     Correo(2, Areas[Band].NombreArea, Areas[Band].Referencia);
@@ -2506,7 +2519,7 @@ function Correo(Tipo, Area, Celda) {
 
   let mailOptions = {
     from: msg + '"Ceere" <correomineria2@ceere.net>', //Deje eso quieto Outlook porne demasiados problemas
-   // to: "jorgecalle@hotmail.com, jorgecaller@gmail.com, alexisaza@hotmail.com,  ceereweb@gmail.com, Soporte2ceere@gmail.com, soportee4@gmail.com, soporte.ceere06068@gmail.com",
+    //to: "jorgecalle@hotmail.com, jorgecaller@gmail.com, alexisaza@hotmail.com,  ceereweb@gmail.com, Soporte2ceere@gmail.com, soportee4@gmail.com, soporte.ceere06068@gmail.com",
     to: '  Soporte2ceere@gmail.com',
     subject: "LA AREA ES-> " + Area,
     text: "LA AREA ES->  " + Area + "  " + Celda,
