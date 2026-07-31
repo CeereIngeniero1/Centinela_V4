@@ -26,7 +26,7 @@ console.log(" Equipo Actual: ", EquipoActual);
 
 const Empresa = "Valleduper";
 const CodigoPin = "V1";
-const ARCHIVO_AREAS = "504741";
+const ARCHIVO_AREAS = "504746";
 const DASHBOARD_URL = "https://annamineria.anm.gov.co/sigm/index.html#/extDashboard";
 const ESPERA_DASHBOARD_MS = 3000;
 const MAX_INTENTOS_DASHBOARD = 3;
@@ -64,12 +64,13 @@ const Datos_Contadores = Contadores[Empresa];
 
 const user1 = Datos_Empresa.Codigo;
 const pass1 = Datos_Empresa.Contraseña;
-const user2 = '';
-const pass2 = '';
-const Agente = 0;
+// "Nombre": "MAX RESOURCE SIERRA S.A.S. (MRS)"
+const user2 = '77008';
+const pass2 = 'SI3RR4M4X2026$';
+const Agente = 1;
 const manual = 0; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
 const continuarManual = 0; // 1 = el bot solo coloca datos; el humano hace clic en Continuar; 0 = bot también da Continuar
-const continuarAreaManual = 1; // 1 = el humano da Continuar después de colocar el área; 0 = clic automático
+const continuarAreaManual = 0; // 1 = el humano da Continuar después de colocar el área; 0 = clic automático
 if (continuarManual == 1) {
   console.log(
     "⚙️ continuarManual=1: el bot colocará datos y esperará tu clic en Continuar."

@@ -15,5 +15,22 @@
       "Clave": "Quimbaya2026_**.",
       "Nombre": "Quimbaya SOM"
     }
+  },
+  "MAX": {
+    "Sierra": {
+      "Usuario": "77008",
+      "Clave": "SI3RR4M4X2026$",
+      "Nombre": "MAX RESOURCE SIERRA S.A.S. (MRS)"
+    },
+    "Guajira": {
+      "Usuario": "83401",
+      "Clave": "G64J1R4M4XR3S2026$",
+      "Nombre": "MAX RESOURCE GUAJIRA S.A.S."
+    },
+    "Colombia": {
+      "Usuario": "75967",
+      "Clave": "M4XR3SOUR2026$",
+      "Nombre": "MAX RESOURCE COLOMBIA S.A.S."
+    }
   }
 }
