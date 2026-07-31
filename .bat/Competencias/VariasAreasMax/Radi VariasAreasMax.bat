@@ -1,1 +1,1 @@
-start /d "../../../" node "Radi VariasAreasMax.js"
+start /d "../../../" node "Radi Fre VariasAreasMax.js"
