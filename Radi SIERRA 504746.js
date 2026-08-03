@@ -70,7 +70,7 @@ const pass2 = 'SI3RR4M4X2026$';
 const Agente = 1;
 const manual = 0; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
 const continuarManual = 0; // 1 = el bot solo coloca datos; el humano hace clic en Continuar; 0 = bot también da Continuar
-const continuarAreaManual = 0; // 1 = el humano da Continuar después de colocar el área; 0 = clic automático
+const continuarAreaManual = 1; // 1 = el humano da Continuar después de colocar el área; 0 = clic automático
 if (continuarManual == 1) {
   console.log(
     "⚙️ continuarManual=1: el bot colocará datos y esperará tu clic en Continuar."
