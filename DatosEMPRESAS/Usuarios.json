@@ -68,6 +68,29 @@
       "Usuario": "96233",
       "Clave": "SuperAgente86*",
       "Nombre": "Santiago"
+    },
+    "JoanDavid": {
+      "Usuario": "104908",
+      "Clave": "Collective10*",
+      "Nombre": "Joan David Álvarez Caicedo",
+      "Nota": "Para ARE"
+    },
+    "Oscar": {
+      "Usuario": "70164",
+      "Clave": "Cuello_1606",
+      "Nombre": "Oscar Benito Cuello"
+    },
+    "Arturo": {
+      "Usuario": "104733",
+      "Clave": "G30$m4t1c4",
+      "Nombre": "Arturo Alexis Granada",
+      "Nota": "Normal"
+    },
+    "Laura": {
+      "Usuario": "104736",
+      "Clave": "Laura123..",
+      "Nombre": "Laura",
+      "Nota": "Normal"
     }
   }
 }
