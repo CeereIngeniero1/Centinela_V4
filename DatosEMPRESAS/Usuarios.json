@@ -32,5 +32,42 @@
       "Clave": "M4XR3SOUR2026$",
       "Nombre": "MAX RESOURCE COLOMBIA S.A.S."
     }
+  },
+  "Collective": {
+    "Alejandra": {
+      "Usuario": "76467",
+      "Clave": "Maxamaga2025.",
+      "Nombre": "Alejandra"
+    },
+    "Alejandro": {
+      "Usuario": "102249",
+      "Clave": "Alejo2026*",
+      "Nombre": "Alejandro"
+    },
+    "David": {
+      "Usuario": "71381",
+      "Clave": "3117334589DsBv_",
+      "Nombre": "David"
+    },
+    "Fernando": {
+      "Usuario": "83955",
+      "Clave": "ANM2026ANNA$",
+      "Nombre": "Fernando"
+    },
+    "Jorge": {
+      "Usuario": "99401",
+      "Clave": "JU9*-2024&",
+      "Nombre": "Jorge"
+    },
+    "Provenza": {
+      "Usuario": "74025",
+      "Clave": "Bloqueo2026CML.",
+      "Nombre": "Provenza"
+    },
+    "Santiago": {
+      "Usuario": "96233",
+      "Clave": "SuperAgente86*",
+      "Nombre": "Santiago"
+    }
   }
 }
