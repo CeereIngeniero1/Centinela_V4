@@ -1,1 +1,0 @@
-start /d "../../../" node "HJBF-10 Ope.js"
