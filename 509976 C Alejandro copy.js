@@ -26,7 +26,7 @@ console.log(" Equipo Actual: ", EquipoActual);
 
 const Empresa = "Collective";
 const CodigoPin = "Co";
-const ARCHIVO_AREAS = "509976 copy";
+const ARCHIVO_AREAS = "509976 C copy";
 const DASHBOARD_URL = "https://annamineria.anm.gov.co/sigm/index.html#/extDashboard";
 const ESPERA_DASHBOARD_MS = 3000;
 const MAX_INTENTOS_DASHBOARD = 3;
@@ -64,8 +64,8 @@ const Datos_Contadores = Contadores[Empresa];
 
 const user1 = Datos_Empresa.Codigo;
 const pass1 = Datos_Empresa.Contraseña;
-const user2 = '70164';
-const pass2 = 'Cuello_1606';
+const user2 = '102249';
+const pass2 = 'Alejo2026*';
 const Agente = 1;
 const manual = 0; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
 const continuarManual = 0; // 1 = el bot solo coloca datos; el humano hace clic en Continuar; 0 = bot también da Continuar
