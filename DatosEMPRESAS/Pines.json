@@ -116,51 +116,26 @@
     "empresa": "Miranda"
   },
   "V1": {
-    "pin": "20260724153250",
-    "vencimiento": "24/AGO/2026",
-    "empresa": "Valleduper"
-  },
-  "V2": {
-    "pin": "20260724153615",
-    "vencimiento": "24/AGO/2026",
-    "empresa": "Valleduper"
-  },
-  "V3": {
-    "pin": "20260731101053",
-    "vencimiento": "31/AGO/2026",
-    "empresa": "Valleduper"
-  },
-  "V4": {
-    "pin": "20260731101449",
-    "vencimiento": "31/AGO/2026",
-    "empresa": "Valleduper"
-  },
-  "V5": {
-   "pin": "20260731101742",
-    "vencimiento": "31/AGO/2026",
-    "empresa": "Valleduper"
-  },
-  "V6": {
     "pin": "20260731102040",
     "vencimiento": "31/AGO/2026",
     "empresa": "Valleduper"
   },
-  "V7": {
+  "V2": {
     "pin": "20260731102353",
     "vencimiento": "31/AGO/2026",
     "empresa": "Valleduper"
   },
-  "V8": {
-   "pin": "20260731102723",
+  "V3": {
+    "pin": "20260731102723",
     "vencimiento": "31/AGO/2026",
     "empresa": "Valleduper"
   },
-  "V9": {
+  "V4": {
     "pin": "20260731103133",
     "vencimiento": "31/AGO/2026",
     "empresa": "Valleduper"
   },
-  "V10": {
+  "V5": {
     "pin": "20260731103440",
     "vencimiento": "31/AGO/2026",
     "empresa": "Valleduper"
