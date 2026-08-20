@@ -39,7 +39,7 @@ const RUTAS_FLUJO_RADICACION = [
 const MONITOREO_AREA_MS = 30 * 1000;
 const INTERVALO_PRIMERA_REVISION_MS = 1 * 1000;
 const INTERVALO_REVISION_AREA_MS = 5 * 1000;
-const ESPERA_ENTRE_AREAS_MS = 1000;
+const ESPERA_ENTRE_AREAS_MS = 25000;
 const INTERVALO_REVISION_ENTRE_AREAS_MS = 3 * 1000;
 const TIMEAREA_REINICIO_MS = 5 * 60 * 1000;
 const ESPERA_ANTES_CONTINUAR_AREA_MS = 400;
@@ -69,7 +69,7 @@ const pass2 = 'SI3RR4M4X2026$';
 const Agente = 1;
 const manual = 0; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
 const continuarManual = 0; // 1 = el bot solo coloca datos; el humano hace clic en Continuar; 0 = bot también da Continuar
-const continuarAreaManual = 1; // 1 = el humano da Continuar después de colocar el área; 0 = clic automático
+const continuarAreaManual = 0; // 1 = el humano da Continuar después de colocar el área; 0 = clic automático
 if (continuarManual == 1) {
   console.log(
     "⚙️ continuarManual=1: el bot colocará datos y esperará tu clic en Continuar."
