@@ -1634,7 +1634,7 @@ async function Profesionales(page, Eventos) {
     visible: true,
     timeout: 30000,
   });
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(400);
 
   // SELECCIÓN DEL CONTADOR
   // ==============================================================================
@@ -2719,7 +2719,7 @@ async function seleccionarEnSelectProfesional(page, selector, textoParcial) {
   }
 
   console.log(`✅ Select ${selector} -> "${ok.texto}"`);
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(250);
 }
 
 async function clickAgregarProfesional(page, Tipo) {
@@ -2741,7 +2741,7 @@ async function clickAgregarProfesional(page, Tipo) {
     await addProfesional[idx].click();
   }
 
-  await page.waitForTimeout(800);
+  await page.waitForTimeout(350);
 }
 
 async function verificarProfesionalAgregado(page, nombre, Tipo) {
@@ -2761,7 +2761,7 @@ async function verificarProfesionalAgregado(page, nombre, Tipo) {
       const texto = section ? section.innerText : document.body.innerText;
       return texto.includes(nombre) || (idNum && texto.includes(idNum));
     },
-    { timeout: 15000 },
+    { timeout: 8000 },
     { nombre, idNum, selectId }
   );
 
@@ -2817,7 +2817,7 @@ async function seleccionar_Profesional(profesionales, page, Tipo, Eventos) {
       selectorTipoProfesion,
       tipoProfesional
     );
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(400);
 
     // Iterar sobre los nombres y seleccionar cada uno en el segundo select
     for (const nombre of nombres) {
