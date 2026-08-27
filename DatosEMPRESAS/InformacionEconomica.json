@@ -58,5 +58,11 @@
     "activoCorrienteId0": 1020635000,
     "pasivoTotalId0": 9140193000,
     "activoTotalId0": 70675553000
+  },
+  "AGMIVEL": {
+    "pasivoCorrienteId0": 1667029,
+    "activoCorrienteId0": 4433515,
+    "pasivoTotalId0": 5490000,
+    "activoTotalId0": 11437462
   }
 }
