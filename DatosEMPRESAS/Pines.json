@@ -159,5 +159,10 @@
     "pin": "20260727091817",
     "vencimiento": "27/AGO/2026",
     "empresa": "CARNEOLA"
+  },
+  "AG1": {
+    "pin": "20260827094107",
+    "vencimiento": "27/SEP/2026",
+    "empresa": "AGMIVEL"
   }
 }

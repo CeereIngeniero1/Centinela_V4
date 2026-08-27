@@ -52,5 +52,11 @@
     "Contraseña": "MSAColombia2024*",
     "Nombre": "MINERALES SANTA ANA COLOMBIA S.A.S",
     "TipoUsuario": "PJ"
+  },
+  "AGMIVEL": {
+    "Codigo": "78544",
+    "Contraseña": "Entrada123+",
+    "Nombre": "AGMIVEL SAS",
+    "TipoUsuario": "PJ"
   }
 }
