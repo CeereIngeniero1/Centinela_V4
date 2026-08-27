@@ -1,1 +1,1 @@
-start /d "../../../" node "AGMIVEL.js"
+start /d "../../../../" node "AGMIVEL.js"
