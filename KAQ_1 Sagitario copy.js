@@ -25,7 +25,7 @@ const EquipoActual = EquiposGenerales[NombreEquipo];
 console.log(" Equipo Actual: ", EquipoActual);
 
 const Empresa = "CARNEOLA";
-const CodigoPin = "CA1";
+const CodigoPin = "CA";
 const ARCHIVO_AREAS = "KAQ_1 copy";
 const DASHBOARD_URL = "https://annamineria.anm.gov.co/sigm/index.html#/extDashboard";
 const ESPERA_DASHBOARD_MS = 3000;

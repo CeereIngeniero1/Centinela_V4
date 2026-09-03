@@ -147,13 +147,18 @@
     "empresa": "Valleduper"
   },
   "CA": {
-    "pin": "20260727092402",
-    "vencimiento": "27/AGO/2026",
+    "pin": "20260826095248",
+    "vencimiento": "26/SEP/2026",
     "empresa": "CARNEOLA"
   },
   "CA1": {
-    "pin": "20260727091817",
-    "vencimiento": "27/AGO/2026",
+    "pin": "20260903132325",
+    "vencimiento": "03/OCT/2026",
+    "empresa": "CARNEOLA"
+  },
+  "CA2": {
+    "pin": "20260826095931",
+    "vencimiento": "26/SEP/2026",
     "empresa": "CARNEOLA"
   },
   "AG1": {
