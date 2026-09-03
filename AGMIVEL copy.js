@@ -24,7 +24,7 @@ console.log(" Nombre del equipo: ", NombreEquipo);
 const EquipoActual = EquiposGenerales[NombreEquipo];
 console.log(" Equipo Actual: ", EquipoActual);
 
-const Empresa = "AGMIVEL";
+const Empresa = "Collective";
 const CodigoPin = "AG1";
 const ARCHIVO_AREAS = "AGMIVEL copy";
 const DASHBOARD_URL = "https://annamineria.anm.gov.co/sigm/index.html#/extDashboard";
