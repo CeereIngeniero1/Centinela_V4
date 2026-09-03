@@ -65,7 +65,7 @@ const Datos_Contadores = Contadores[Empresa];
 const user1 = Datos_Empresa.Codigo;
 const pass1 = Datos_Empresa.Contraseña;
 const user2 = '33268';
-const pass2 = 'Quimbaya2026_**.';
+const pass2 = 'Quimbaya2026_**';
 const Agente = 1;
 const manual = 0; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
 const continuarManual = 0; // 1 = el bot solo coloca datos; el humano hace clic en Continuar; 0 = bot también da Continuar
