@@ -4,22 +4,47 @@ const path = require("path");
 const NOMBRES_CARPETA = ["DocumentosAdiconales", "DocumentosAdicionales"];
 
 function resolverCarpetaAdicionales(empresa) {
-  const base = path.join(__dirname, "Documentos", empresa);
-  for (const nombre of NOMBRES_CARPETA) {
-    const carpeta = path.join(base, nombre);
-    if (fs.existsSync(carpeta)) return carpeta;
+  try {
+    const base = path.join(__dirname, "Documentos", empresa);
+    if (!fs.existsSync(base)) return null;
+    for (const nombre of NOMBRES_CARPETA) {
+      const carpeta = path.join(base, nombre);
+      if (fs.existsSync(carpeta) && fs.statSync(carpeta).isDirectory()) {
+        return carpeta;
+      }
+    }
+  } catch (e) {
+    console.log(
+      `No se pudo resolver carpeta de adicionales para ${empresa}:`,
+      e.message || e
+    );
   }
   return null;
 }
 
 function listarDocumentosAdicionales(empresa) {
-  const carpeta = resolverCarpetaAdicionales(empresa);
-  if (!carpeta) return { carpeta: null, archivos: [] };
-  const archivos = fs
-    .readdirSync(carpeta)
-    .filter((f) => /\.(pdf|zip)$/i.test(f))
-    .sort((a, b) => a.localeCompare(b, "es", { numeric: true }));
-  return { carpeta, archivos };
+  try {
+    const carpeta = resolverCarpetaAdicionales(empresa);
+    if (!carpeta) return { carpeta: null, archivos: [] };
+    const archivos = fs
+      .readdirSync(carpeta)
+      .filter((f) => {
+        try {
+          const full = path.join(carpeta, f);
+          return fs.statSync(full).isFile() && /\.(pdf|zip)$/i.test(f);
+        } catch (e) {
+          return false;
+        }
+      })
+      .sort((a, b) => a.localeCompare(b, "es", { numeric: true }));
+    return { carpeta, archivos };
+  } catch (e) {
+    console.log(
+      `No se pudo listar adicionales para ${empresa}; se omite:`,
+      e.message || e
+    );
+    return { carpeta: null, archivos: [] };
+  }
 }
 
 async function asignarTipoOtroEnTodosLosAdicionales(page, archivos) {
@@ -164,94 +189,120 @@ async function asignarTipoOtroEnTodosLosAdicionales(page, archivos) {
 /**
  * Sube documentos adicionales y asigna tipo "Otro" si la empresa tiene
  * DocumentosAdiconales / DocumentosAdicionales con archivos.
+ * Si no hay carpeta, está vacía o falla algo: NO detiene el flujo (return false).
  * @returns {Promise<boolean>} true si hubo archivos y se procesaron
  */
 async function Documentos_Adicionales(page, Empresa) {
-  const { carpeta, archivos } = listarDocumentosAdicionales(Empresa);
+  try {
+    const { carpeta, archivos } = listarDocumentosAdicionales(Empresa);
 
-  if (!carpeta) {
+    if (!carpeta) {
+      console.log(
+        `Sin carpeta DocumentosAdiconales/DocumentosAdicionales para ${Empresa}; se omite y el flujo continúa.`
+      );
+      return false;
+    }
+
+    if (archivos.length === 0) {
+      console.log(
+        `Carpeta de adicionales vacía (${carpeta}); se omite y el flujo continúa.`
+      );
+      return false;
+    }
+
+    console.log("INICIA CARGA RAPIDA DE DOCUMENTOS ADICIONALES");
     console.log(
-      `Sin carpeta DocumentosAdiconales/DocumentosAdicionales para ${Empresa}; se omite.`
+      "================================================================"
     );
-    return false;
-  }
+    console.log(`Empresa: ${Empresa} | Archivos: ${archivos.length}`);
+    console.log(`Carpeta: ${carpeta}`);
 
-  if (archivos.length === 0) {
+    const inputAdjunto = await page.$("#p_CaaCataDocumentToAttachId");
+    if (!inputAdjunto) {
+      console.log(
+        "No está el botón Adjuntar de adicionales en la página; se omite y el flujo continúa."
+      );
+      return false;
+    }
+
+    await page.waitForSelector("#p_CaaCataDocumentToAttachId", {
+      timeout: 15000,
+    });
+
+    for (let i = 0; i < archivos.length; i++) {
+      const archivo = archivos[i];
+      const rutaAbsoluta = path.join(carpeta, archivo);
+      console.log(
+        `Subiendo adicional (${i + 1}/${archivos.length}): ${archivo}`
+      );
+
+      try {
+        const yaEnLista = await page.evaluate((nombre) => {
+          return Array.from(document.querySelectorAll("a")).some((a) =>
+            (a.textContent || "").trim().includes(nombre)
+          );
+        }, archivo);
+
+        if (yaEnLista) {
+          console.log(`Ya estaba en lista (omitido): ${archivo}`);
+          continue;
+        }
+
+        await page.evaluate(() => {
+          const el = document.querySelector("#p_CaaCataDocumentToAttachId");
+          if (el) el.value = "";
+        });
+
+        const input = await page.$("#p_CaaCataDocumentToAttachId");
+        if (!input) {
+          console.log(
+            "Se perdió #p_CaaCataDocumentToAttachId; se detiene carga adicional sin abortar radicación."
+          );
+          break;
+        }
+
+        await input.uploadFile(rutaAbsoluta);
+
+        await page.waitForFunction(
+          (nombre) =>
+            Array.from(document.querySelectorAll("a")).some((a) =>
+              (a.textContent || "").trim().includes(nombre)
+            ),
+          { timeout: 30000, polling: 100 },
+          archivo
+        );
+
+        console.log(`✅ Subido: ${archivo}`);
+      } catch (error) {
+        console.log(
+          `Error al subir adicional ${archivo} (se continúa con el resto):`,
+          error.message || error
+        );
+      }
+    }
+
     console.log(
-      `Carpeta de adicionales vacía (${carpeta}); se omite adjunto adicional.`
+      "================================================================"
     );
-    return false;
-  }
-
-  console.log("INICIA CARGA RAPIDA DE DOCUMENTOS ADICIONALES");
-  console.log(
-    "================================================================"
-  );
-  console.log(`Empresa: ${Empresa} | Archivos: ${archivos.length}`);
-  console.log(`Carpeta: ${carpeta}`);
-
-  await page.waitForSelector("#p_CaaCataDocumentToAttachId", {
-    timeout: 30000,
-  });
-
-  for (let i = 0; i < archivos.length; i++) {
-    const archivo = archivos[i];
-    const rutaAbsoluta = path.join(carpeta, archivo);
-    console.log(
-      `Subiendo adicional (${i + 1}/${archivos.length}): ${archivo}`
-    );
+    console.log("FINALIZA CARGA RAPIDA DE DOCUMENTOS ADICIONALES");
 
     try {
-      const yaEnLista = await page.evaluate((nombre) => {
-        return Array.from(document.querySelectorAll("a")).some((a) =>
-          (a.textContent || "").trim().includes(nombre)
-        );
-      }, archivo);
-
-      if (yaEnLista) {
-        console.log(`Ya estaba en lista (omitido): ${archivo}`);
-        continue;
-      }
-
-      await page.evaluate(() => {
-        const el = document.querySelector("#p_CaaCataDocumentToAttachId");
-        if (el) el.value = "";
-      });
-
-      const input = await page.$("#p_CaaCataDocumentToAttachId");
-      if (!input) {
-        throw new Error("No se encontró #p_CaaCataDocumentToAttachId");
-      }
-
-      await input.uploadFile(rutaAbsoluta);
-
-      await page.waitForFunction(
-        (nombre) =>
-          Array.from(document.querySelectorAll("a")).some((a) =>
-            (a.textContent || "").trim().includes(nombre)
-          ),
-        { timeout: 30000, polling: 100 },
-        archivo
-      );
-
-      console.log(`✅ Subido: ${archivo}`);
+      await page.waitForTimeout(400);
+      await asignarTipoOtroEnTodosLosAdicionales(page, archivos);
     } catch (error) {
       console.log(
-        `Error al subir adicional ${archivo}:`,
+        `Error al asignar tipo Otro (flujo continúa):`,
         error.message || error
       );
-      throw error;
     }
+    return true;
+  } catch (error) {
+    console.log(
+      `Documentos adicionales omitidos; el proceso de radicación continúa:`,
+      error.message || error
+    );
+    return false;
   }
-
-  console.log(
-    "================================================================"
-  );
-  console.log("FINALIZA CARGA RAPIDA DE DOCUMENTOS ADICIONALES");
-
-  await page.waitForTimeout(400);
-  await asignarTipoOtroEnTodosLosAdicionales(page, archivos);
-  return true;
 }
 
 module.exports = {
