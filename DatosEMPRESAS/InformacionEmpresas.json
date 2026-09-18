@@ -58,5 +58,11 @@
     "Contraseña": "Entrada123+",
     "Nombre": "AGMIVEL SAS",
     "TipoUsuario": "PJ"
+  },
+  "AMC": {
+    "Codigo": "37666",
+    "Contraseña": "Gmc/112556",
+    "Nombre": "ACTIVOS MINEROS DE COLOMBIA S.A.S.",
+    "TipoUsuario": "PJ"
   }
 }

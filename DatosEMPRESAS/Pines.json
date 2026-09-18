@@ -165,5 +165,35 @@
     "pin": "20260827094107",
     "vencimiento": "27/SEP/2026",
     "empresa": "AGMIVEL"
+  },
+  "AM1": {
+    "pin": "20260917114107",
+    "vencimiento": "17/OCT/2026",
+    "empresa": "AMC"
+  },
+  "AM2": {
+    "pin": "20260917122606",
+    "vencimiento": "17/OCT/2026",
+    "empresa": "AMC"
+  },
+  "AM3": {
+    "pin": "20260917123233",
+    "vencimiento": "17/OCT/2026",
+    "empresa": "AMC"
+  },
+  "AM4": {
+    "pin": "20260917123543",
+    "vencimiento": "17/OCT/2026",
+    "empresa": "AMC"
+  },
+  "AM5": {
+    "pin": "20260917123907",
+    "vencimiento": "17/OCT/2026",
+    "empresa": "AMC"
+  },
+  "AM6": {
+    "pin": "20260917124419",
+    "vencimiento": "17/OCT/2026",
+    "empresa": "AMC"
   }
 }

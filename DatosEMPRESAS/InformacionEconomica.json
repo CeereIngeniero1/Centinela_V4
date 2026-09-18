@@ -64,5 +64,11 @@
     "activoCorrienteId0": 4433515000,
     "pasivoTotalId0": 5493051000,
     "activoTotalId0": 11437462000
+  },
+  "AMC": {
+    "pasivoCorrienteId0": 705626264000,
+    "activoCorrienteId0": 2498358063000,
+    "pasivoTotalId0": 2751272620000,
+    "activoTotalId0": 3981577259000
   }
 }

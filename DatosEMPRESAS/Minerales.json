@@ -59,5 +59,13 @@
   "AGMIVEL": [
     "ORO",
     "oro"
+  ],
+  "AMC": [
+    "ORO",
+    "oro",
+    "PLATA",
+    "plata",
+    "COBRE",
+    "cobre"
   ]
 }

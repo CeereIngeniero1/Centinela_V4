@@ -15,6 +15,8 @@ const {
   Geologos,
   Contadores,
 } = require("./datosEmpresas");
+const { Documentos_Adicionales } = require("./documentosAdicionales");
+
 
 
 
@@ -2807,6 +2809,10 @@ function Mineria(browser, Pin, sesionId) {
       await Documentos_Persona_Natural(page, Empresa);
 
     }
+
+    await Documentos_Adicionales(page, Empresa);
+
+
 
     const continPag = await page.$x('//span[contains(.,"Continuar")]');
     if (continuarManual == 1) {
