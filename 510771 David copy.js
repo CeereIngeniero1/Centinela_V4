@@ -15,6 +15,7 @@ const {
   Geologos,
   Contadores,
 } = require("./datosEmpresas");
+const { Documentos_Adicionales } = require("./documentosAdicionales");
 
 
 
@@ -26,7 +27,7 @@ console.log(" Equipo Actual: ", EquipoActual);
 
 const Empresa = "Collective";
 const CodigoPin = "Co";
-const ARCHIVO_AREAS = "509135 copy";
+const ARCHIVO_AREAS = "510771 copy";
 const DASHBOARD_URL = "https://annamineria.anm.gov.co/sigm/index.html#/extDashboard";
 const ESPERA_DASHBOARD_MS = 3000;
 const MAX_INTENTOS_DASHBOARD = 3;
@@ -39,7 +40,7 @@ const RUTAS_FLUJO_RADICACION = [
 const MONITOREO_AREA_MS = 30 * 1000;
 const INTERVALO_PRIMERA_REVISION_MS = 1 * 1000;
 const INTERVALO_REVISION_AREA_MS = 5 * 1000;
-const ESPERA_ENTRE_AREAS_MS = 30 * 1000;
+const ESPERA_ENTRE_AREAS_MS = 1000;
 const INTERVALO_REVISION_ENTRE_AREAS_MS = 3 * 1000;
 const TIMEAREA_REINICIO_MS = 5 * 60 * 1000;
 const ESPERA_ANTES_CONTINUAR_AREA_MS = 400;
@@ -64,9 +65,9 @@ const Datos_Contadores = Contadores[Empresa];
 
 const user1 = Datos_Empresa.Codigo;
 const pass1 = Datos_Empresa.Contraseña;
-const user2 = '96233';
-const pass2 = 'SuperAgente86*';
-const Agente = 0;
+const user2 = '71381';
+const pass2 = '3117334589DsBv_';
+const Agente = 1;
 const manual = 0; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
 const continuarManual = 0; // 1 = el bot solo coloca datos; el humano hace clic en Continuar; 0 = bot también da Continuar
 const continuarAreaManual = 1; // 1 = el humano da Continuar después de colocar el área; 0 = clic automático
@@ -103,9 +104,8 @@ async function Pagina() {
 
   const browser = await puppeteer.launch({
     //executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-    executablePath:
-      "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
-    // Reemplaza con la ruta real a tu Google Chrome
+    //executablePath: "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+    executablePath: puppeteer.executablePath(), // Chromium de Puppeteer
     headless: false,
     args: [
       "--start-maximized",
@@ -338,10 +338,7 @@ async function clickContinuarArea(page, indice = 1) {
       await corregirMineralesSiObligatorio(page);
       await esperarContinuarHumano(page, "Área corregida");
     }
-    console.log(
-      "✅ Continuar del área detectado; esperando navegación o respuesta del portal."
-        .green
-    );
+    console.log("✅ Continuar del área detectado; esperando navegación o respuesta del portal.".green);
     return;
   }
 
@@ -2421,12 +2418,11 @@ function Mineria(browser, Pin,) {
 
     }
 
-    const continPag = await page.$x('//span[contains(.,"Continuar")]');
- 
+    await Documentos_Adicionales(page, Empresa);
 
-    //CORREO RADICACION
+    // MODO PRUEBA: no Continuar → Radicar; solo aviso y espera
     Correo(2, Areas[Band].NombreArea, Areas[Band].Referencia);
-    await page.waitForTimeout(180000);
+    await page.waitForTimeout(999000);
     Mineria(browser, Pin);
 
     } catch (error) {
@@ -2504,7 +2500,7 @@ function Correo(Tipo, Area, Celda) {
 
   let mailOptions = {
     from: msg + '"Ceere" <correomineria2@ceere.net>', //Deje eso quieto Outlook porne demasiados problemas
-   // to: "jorgecalle@hotmail.com, jorgecaller@gmail.com, alexisaza@hotmail.com,  ceereweb@gmail.com, Soporte2ceere@gmail.com, soportee4@gmail.com, soporte.ceere06068@gmail.com",
+    //to: "jorgecalle@hotmail.com, jorgecaller@gmail.com, alexisaza@hotmail.com,  ceereweb@gmail.com, Soporte2ceere@gmail.com, soportee4@gmail.com, soporte.ceere06068@gmail.com",
     to: '  Soporte2ceere@gmail.com',
     subject: "LA AREA ES-> " + Area,
     text: "LA AREA ES->  " + Area + "  " + Celda,
