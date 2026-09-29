@@ -28,7 +28,7 @@ console.log(" Equipo Actual: ", EquipoActual);
 
 const Empresa = "AMC";
 const CodigoPin = "AM1";
-const ARCHIVO_AREAS = "SanLuisSanjuan";
+const ARCHIVO_AREAS = "PV_Sur";
 const DASHBOARD_URL = "https://annamineria.anm.gov.co/sigm/index.html#/extDashboard";
 const ESPERA_DASHBOARD_MS = 3000;
 const MAX_INTENTOS_DASHBOARD = 3;
