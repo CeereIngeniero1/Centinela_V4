@@ -47,7 +47,8 @@
     "Alejandra": {
       "Usuario": "76467",
       "Clave": "Maxamaga2025.",
-      "Nombre": "Alejandra"
+      "Nombre": "Alejandra",
+      "Nota": "Ya no funciona"
     },
     "Alejandro": {
       "Usuario": "102249",
@@ -94,7 +95,8 @@
     "Oscar": {
       "Usuario": "70164",
       "Clave": "Cuello_1606",
-      "Nombre": "Oscar Benito Cuello"
+      "Nombre": "Oscar Benito Cuello",
+      "Nota": "Ya no funciona"
     },
     "Arturo": {
       "Usuario": "104733",
@@ -107,6 +109,16 @@
       "Clave": "Laura123..",
       "Nombre": "Laura",
       "Nota": "Normal"
+    },
+    "Wilson": {
+      "Usuario": "38409",
+      "Clave": "Maragus0440**",
+      "Nombre": "Wilson Velez"
+    },
+    "Natalia": {
+      "Usuario": "83542",
+      "Clave": "zI0*jI7*xL",
+      "Nombre": "Natalia Vargas"
     }
   },
   "AGMIVEL": {
