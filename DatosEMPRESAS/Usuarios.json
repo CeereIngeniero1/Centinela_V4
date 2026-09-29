@@ -113,12 +113,14 @@
     "Wilson": {
       "Usuario": "38409",
       "Clave": "Maragus0440**",
-      "Nombre": "Wilson Velez"
+      "Nombre": "Wilson Velez",
+      "Nota": "Contraseña mala"
     },
     "Natalia": {
       "Usuario": "83542",
       "Clave": "zI0*jI7*xL",
-      "Nombre": "Natalia Vargas"
+      "Nombre": "Natalia Vargas",
+      "Nota": "Contraseña mala"
     }
   },
   "AGMIVEL": {
