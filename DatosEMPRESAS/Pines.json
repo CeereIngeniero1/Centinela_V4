@@ -4,33 +4,23 @@
     "vencimiento": "21/DIC/2023"
   },
   "Co": {
-    "pin": "20260911141915",
-    "vencimiento": "11/OCT/2026",
+    "pin": "20260925151359",
+    "vencimiento": "25/OCT/2026",
     "empresa": "Collective"
   },
   "C1": {
-    "pin": "20260728075441",
-    "vencimiento": "28/AGO/2026",
+    "pin": "20260929111413",
+    "vencimiento": "29/OCT/2026",
     "empresa": "Collective"
   },
   "C2": {
-    "pin": "20260813140640",
-    "vencimiento": "13/SEP/2026",
+    "pin": "20260929111745",
+    "vencimiento": "29/OCT/2026",
     "empresa": "Collective"
   },
   "C3": {
-    "pin": "20260813141051",
-    "vencimiento": "13/SEP/2026",
-    "empresa": "Collective"
-  },
-  "C4": {
-    "pin": "20260813141413",
-    "vencimiento": "13/SEP/2026",
-    "empresa": "Collective"
-  },
-  "C5": {
-    "pin": "20260813141636",
-    "vencimiento": "13/SEP/2026",
+    "pin": "20260929112402",
+    "vencimiento": "29/OCT/2026",
     "empresa": "Collective"
   },
   "Po": {
@@ -140,7 +130,6 @@
     "vencimiento": "31/AGO/2026",
     "empresa": "Valleduper"
   },
-
   "OP": {
     "pin": "20260528151008",
     "vencimiento": "28/JUN/2026",
