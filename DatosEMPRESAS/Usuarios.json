@@ -72,7 +72,7 @@
     },
     "Provenza": {
       "Usuario": "74025",
-      "Clave": "Bloqueo2026CML.",
+      "Clave": "AznevorP402..*",
       "Nombre": "Provenza"
     },
     "Santiago": {
@@ -120,6 +120,11 @@
       "Usuario": "83542",
       "Clave": "eN1*vQ0*mC",
       "Nombre": "Natalia Vargas"
+    },
+    "Campana": {
+      "Usuario": "63213",
+      "Clave": "Anapmac034..*",
+      "Nombre": "Campana"
     }
   },
   "AGMIVEL": {

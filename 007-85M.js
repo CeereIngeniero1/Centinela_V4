@@ -26,9 +26,9 @@ console.log(" Nombre del equipo: ", NombreEquipo);
 const EquipoActual = EquiposGenerales[NombreEquipo];
 console.log(" Equipo Actual: ", EquipoActual);
 
-const Empresa = "AMC";
-const CodigoPin = "AM1";
-const ARCHIVO_AREAS = "AMCSanAntonio3";
+const Empresa = "Collective";
+const CodigoPin = "Co";
+const ARCHIVO_AREAS = "007-85M";
 const DASHBOARD_URL = "https://annamineria.anm.gov.co/sigm/index.html#/extDashboard";
 const ESPERA_DASHBOARD_MS = 3000;
 const MAX_INTENTOS_DASHBOARD = 3;
@@ -41,7 +41,7 @@ const RUTAS_FLUJO_RADICACION = [
 const MONITOREO_AREA_MS = 30 * 1000;
 const INTERVALO_PRIMERA_REVISION_MS = 1 * 1000;
 const INTERVALO_REVISION_AREA_MS = 5 * 1000;
-const ESPERA_ENTRE_AREAS_MS = 30 * 1000;
+const ESPERA_ENTRE_AREAS_MS = 1000;
 const INTERVALO_REVISION_ENTRE_AREAS_MS = 3 * 1000;
 const TIMEAREA_REINICIO_MS = 5 * 60 * 1000;
 const ESPERA_ANTES_CONTINUAR_AREA_MS = 400;
@@ -63,14 +63,15 @@ const Datos_Economicos = Informacion_Economica[Empresa];
 const Datos_Geologos = Geologos[Empresa];
 const Datos_Contadores = Contadores[Empresa];
 
+
 const user1 = Datos_Empresa.Codigo;
 const pass1 = Datos_Empresa.Contraseña;
-const user2 = '';
-const pass2 = '';
-const Agente = 0;
+const user2 = '96233';
+const pass2 = 'SuperAgente86*';
+const Agente = 1;
 const manual = 0; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
-const continuarManual = 1; // 1 = el bot solo coloca datos; el humano hace clic en Continuar; 0 = bot también da Continuar
-const continuarAreaManual = 1; // 1 = el humano da Continuar después de colocar el área; 0 = clic automático
+const continuarManual = 0; // 1 = el bot solo coloca datos; el humano hace clic en Continuar; 0 = bot también da Continuar
+const continuarAreaManual = 0; // 1 = el humano da Continuar después de colocar el área; 0 = clic automático
 if (continuarManual == 1) {
   console.log(
     "⚙️ continuarManual=1: el bot colocará datos y esperará tu clic en Continuar."
@@ -339,10 +340,7 @@ async function clickContinuarArea(page, indice = 1) {
       await corregirMineralesSiObligatorio(page);
       await esperarContinuarHumano(page, "Área corregida");
     }
-    console.log(
-      "✅ Continuar del área detectado; esperando navegación o respuesta del portal."
-        .green
-    );
+    console.log("✅ Continuar del área detectado; esperando navegación o respuesta del portal.".green);
     return;
   }
 
@@ -1617,6 +1615,10 @@ async function Profesionales(page, Eventos) {
 
   await seleccionar_Profesional(Datos_Geologos, page, 1, Eventos);
 
+  // Hacer clic en el botón "Agregar"
+  const addProfesional = await page.$x('//span[contains(.,"Agregar")]');
+  await addProfesional[0].click();
+
   console.log(
     "================================================================"
   );
@@ -1631,11 +1633,6 @@ async function Profesionales(page, Eventos) {
     '//a[contains(.,"Información eco")]'
   );
   await btnInfoEconomica[0].click();
-  await page.waitForSelector('select[id="ecoProfessionalDesignationId"]', {
-    visible: true,
-    timeout: 30000,
-  });
-  await page.waitForTimeout(400);
 
   // SELECCIÓN DEL CONTADOR
   // ==============================================================================
@@ -2425,6 +2422,8 @@ function Mineria(browser, Pin,) {
 
     await Documentos_Adicionales(page, Empresa);
 
+
+
     const continPag = await page.$x('//span[contains(.,"Continuar")]');
     if (continuarManual == 1) {
       await clickContinuar(page, 1);
@@ -2665,112 +2664,6 @@ function Correo(Tipo, Area, Celda) {
 
 
 
-async function seleccionarEnSelectProfesional(page, selector, textoParcial) {
-  await page.waitForSelector(selector, { visible: true, timeout: 30000 });
-
-  await page.waitForFunction(
-    (sel, texto) => {
-      const select = document.querySelector(sel);
-      if (!select) return false;
-      const idMatch = /\((\d+)\)/.exec(texto);
-      const idNum = idMatch ? idMatch[1] : null;
-      return [...select.options].some((opt) => {
-        const t = (opt.textContent || "").replace(/\s+/g, " ").trim();
-        return t.includes(texto) || (idNum && t.includes(idNum));
-      });
-    },
-    { timeout: 30000 },
-    selector,
-    textoParcial
-  );
-
-  const ok = await page.evaluate(
-    ({ selector, textoParcial }) => {
-      const select = document.querySelector(selector);
-      if (!select) return { ok: false, motivo: "select no encontrado" };
-      const idMatch = /\((\d+)\)/.exec(textoParcial);
-      const idNum = idMatch ? idMatch[1] : null;
-      const opcion = [...select.options].find((option) => {
-        const t = (option.textContent || "").replace(/\s+/g, " ").trim();
-        return t.includes(textoParcial) || (idNum && t.includes(idNum));
-      });
-      if (!opcion) {
-        return {
-          ok: false,
-          motivo: "opcion no encontrada",
-          opciones: [...select.options].map((o) => (o.textContent || "").trim()),
-        };
-      }
-      select.value = opcion.value;
-      if (window.angular) {
-        angular.element(select).triggerHandler("change");
-      }
-      select.dispatchEvent(new Event("change", { bubbles: true }));
-      select.dispatchEvent(new Event("input", { bubbles: true }));
-      return { ok: true, texto: opcion.textContent.trim() };
-    },
-    { selector, textoParcial }
-  );
-
-  if (!ok || !ok.ok) {
-    console.log("Opciones disponibles:", ok && ok.opciones ? ok.opciones : []);
-    throw new Error(
-      `No se pudo seleccionar "${textoParcial}" en ${selector}: ${
-        (ok && ok.motivo) || "error"
-      }`
-    );
-  }
-
-  console.log(`✅ Select ${selector} -> "${ok.texto}"`);
-  await page.waitForTimeout(250);
-}
-
-async function clickAgregarProfesional(page, Tipo) {
-  const selectId =
-    Tipo == 1 ? "techApplicantNameId" : "ecoApplicantNameId";
-
-  const agregarBtns = await page.$x(
-    `//select[@id="${selectId}"]/ancestor::*[.//span[contains(normalize-space(.),"Agregar")]][1]//span[contains(normalize-space(.),"Agregar")]`
-  );
-
-  if (agregarBtns.length) {
-    await agregarBtns[agregarBtns.length - 1].click();
-  } else {
-    const addProfesional = await page.$x('//span[contains(.,"Agregar")]');
-    if (!addProfesional.length) {
-      throw new Error("No se encontró botón Agregar para profesionales");
-    }
-    const idx = Tipo == 1 ? 0 : addProfesional.length - 1;
-    await addProfesional[idx].click();
-  }
-
-  await page.waitForTimeout(350);
-}
-
-async function verificarProfesionalAgregado(page, nombre, Tipo) {
-  const idMatch = /\((\d+)\)/.exec(nombre);
-  const idNum = idMatch ? idMatch[1] : null;
-  const selectId =
-    Tipo == 1 ? "techApplicantNameId" : "ecoApplicantNameId";
-
-  await page.waitForFunction(
-    ({ nombre, idNum, selectId }) => {
-      const select = document.querySelector(`select[id="${selectId}"]`);
-      const section = select
-        ? select.closest("fieldset") ||
-          select.closest(".panel") ||
-          select.closest("div")
-        : null;
-      const texto = section ? section.innerText : document.body.innerText;
-      return texto.includes(nombre) || (idNum && texto.includes(idNum));
-    },
-    { timeout: 8000 },
-    { nombre, idNum, selectId }
-  );
-
-  console.log(`✅ Profesional agregado en tabla: ${nombre}`);
-}
-
 async function seleccionar_Profesional(profesionales, page, Tipo, Eventos) {
   if (Eventos == 1) {
     DeleteProfesional = await page.$x('//span[contains(.,"Eliminar")]');
@@ -2815,12 +2708,16 @@ async function seleccionar_Profesional(profesionales, page, Tipo, Eventos) {
         : 'select[id="ecoProfessionalDesignationId"]';
 
     await page.waitForSelector(selectorTipoProfesion, { visible: true });
-    await seleccionarEnSelectProfesional(
-      page,
+    await page.select(
       selectorTipoProfesion,
-      tipoProfesional
+      await page.evaluate((selector, tipo) => {
+        const select = document.querySelector(selector);
+        const option = [...select.options].find(opt =>
+          opt.textContent.includes(tipo)
+        );
+        return option ? option.value : "";
+      }, selectorTipoProfesion, tipoProfesional)
     );
-    await page.waitForTimeout(400);
 
     // Iterar sobre los nombres y seleccionar cada uno en el segundo select
     for (const nombre of nombres) {
@@ -2831,9 +2728,72 @@ async function seleccionar_Profesional(profesionales, page, Tipo, Eventos) {
           ? 'select[id="techApplicantNameId"]'
           : 'select[id="ecoApplicantNameId"]';
 
-      await seleccionarEnSelectProfesional(page, selectorProfesional, nombre);
-      await clickAgregarProfesional(page, Tipo);
-      await verificarProfesionalAgregado(page, nombre, Tipo);
+      await page.waitForSelector(selectorProfesional, { visible: true });
+
+      // Esperar que la opción con ese nombre aparezca
+      await page.waitForFunction(
+        (selector, nombre) => {
+          const select = document.querySelector(selector);
+          if (!select) return false;
+          return [...select.options].some(opt =>
+            opt.textContent.includes(nombre)
+          );
+        },
+        {},
+        selectorProfesional,
+        nombre
+      );
+
+      // Seleccionar el valor de esa opción
+      await page.select(
+        selectorProfesional,
+        await page.evaluate((selector, nombre) => {
+          const select = document.querySelector(selector);
+          const option = [...select.options].find(opt =>
+            opt.textContent.includes(nombre)
+          );
+          return option ? option.value : "";
+        }, selectorProfesional, nombre)
+      );
+
+      await page.waitForTimeout(300);
+
+
+      addProfesional = await page.$x('//span[contains(.,"Agregar")]');
+      if (Tipo == 1) {
+        await addProfesional[0].click();
+      } else {
+        try {
+          await addProfesional[0].click();
+        } catch (error) {
+          console.log("ERR 0");
+          console.log(`Bro manito sabe que  pilke -> ${error}`);
+        }
+        try {
+          await addProfesional[1].click();
+        } catch (error) {
+          console.log("ERR 1");
+          console.log(`Bro manito sabe que  pilke -> ${error}`);
+        }
+        try {
+          await addProfesional[2].click();
+        } catch (error) {
+          console.log("ERR 2");
+          console.log(`Bro manito sabe que  pilke -> ${error}`);
+        }
+        try {
+          await addProfesional[3].click();
+        } catch (error) {
+          console.log("ERR 3");
+          console.log(`Bro manito sabe que  pilke -> ${error}`);
+        }
+        try {
+          await addProfesional[4].click();
+        } catch (error) {
+          console.log("ERR 4");
+          console.log(`Bro manito sabe que  pilke -> ${error}`);
+        }
+      }
     }
   }
 }
