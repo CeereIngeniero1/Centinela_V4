@@ -54,11 +54,11 @@ const MineralesPorEmpresa = JSON.parse(
 );
 const Areas = JSON.parse(
   fs.readFileSync(
-    path.join(__dirname, "areas", `${ARCHIVO_AREAS}.json`),
+    path.join(__dirname, "areas", Empresa, `${ARCHIVO_AREAS}.json`),
     "utf-8"
   )
 );
-console.log(`Áreas cargadas: ${ARCHIVO_AREAS}.json (${Areas.length} áreas)`);
+console.log(`Áreas cargadas: ${Empresa}/${ARCHIVO_AREAS}.json (${Areas.length} áreas)`);
 const Datos_Empresa = Informacion_Empresas[Empresa];
 const Datos_Economicos = Informacion_Economica[Empresa];
 const Datos_Geologos = Geologos[Empresa];

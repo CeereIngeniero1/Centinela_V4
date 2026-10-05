@@ -3,7 +3,7 @@
  * debe inicializarse desde radicadorBuscadorTitulos.js (u otro launcher).
  *
  * Modos de áreas:
- * 1) Local (legacy): areas/<ARCHIVO_AREAS>.json en Centinela_V4
+ * 1) Local (legacy): areas/<Empresa>/<ARCHIVO_AREAS>.json en Centinela_V4
  * 2) BuscaTitulos: lee areasSourcePath (p. ej. Totas.json), filtra por Empresa + NombreArea
  */
 const fs = require("fs");
@@ -56,7 +56,7 @@ function esFormatoMultiEmpresa(data) {
 /**
  * Resuelve la lista de áreas que usará radicadorBot.js.
  * Con areasSourcePath: solo la área NombreArea de la Empresa en Totas/Collective.
- * Sin areasSourcePath: lee areas/<ARCHIVO_AREAS>.json local (array completo).
+ * Sin areasSourcePath: lee areas/<Empresa>/<ARCHIVO_AREAS>.json local (array completo).
  */
 function cargarAreas() {
   if (!config) {
@@ -100,7 +100,7 @@ function cargarAreas() {
     ];
   }
 
-  const areasPath = path.join(ROOT, "areas", `${nombreArea}.json`);
+  const areasPath = path.join(ROOT, "areas", config.Empresa, `${nombreArea}.json`);
   const local = JSON.parse(fs.readFileSync(areasPath, "utf-8"));
   if (!Array.isArray(local)) {
     throw new Error(`El archivo local de áreas debe ser un array: ${areasPath}`);
@@ -111,7 +111,7 @@ function cargarAreas() {
 function rutaAreasUsada() {
   if (!config) return null;
   if (config.areasSourcePath) return config.areasSourcePath;
-  return path.join(ROOT, "areas", `${config.ARCHIVO_AREAS}.json`);
+  return path.join(ROOT, "areas", config.Empresa, `${config.ARCHIVO_AREAS}.json`);
 }
 
 function validar() {
@@ -166,7 +166,7 @@ function validar() {
       }
     }
   } else {
-    const areasPath = path.join(ROOT, "areas", `${config.ARCHIVO_AREAS}.json`);
+    const areasPath = path.join(ROOT, "areas", config.Empresa, `${config.ARCHIVO_AREAS}.json`);
     if (config.ARCHIVO_AREAS && !fs.existsSync(areasPath)) {
       errores.push(`No existe el archivo de áreas: ${areasPath}`);
     }

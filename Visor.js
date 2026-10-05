@@ -14,6 +14,7 @@ const {
   Informacion_Economica,
   Geologos,
   Contadores,
+  Usuarios,
 } = require("./datosEmpresas");
 const { Documentos_Adicionales } = require("./documentosAdicionales");
 
@@ -26,9 +27,15 @@ console.log(" Nombre del equipo: ", NombreEquipo);
 const EquipoActual = EquiposGenerales[NombreEquipo];
 console.log(" Equipo Actual: ", EquipoActual);
 
-const Empresa = "Collective";
-const CodigoPin = "C2";
-const ARCHIVO_AREAS = "510346 A";
+// ===== Configuración del visor =====
+const Empresa = "Collective"; // clave en DatosEMPRESAS/InformacionEmpresas.json
+const CodigoPin = "Co"; // clave en DatosEMPRESAS/Pines.json
+const UsuarioAgente = "Santiago"; // clave en DatosEMPRESAS/Usuarios.json dentro de la empresa; null = entra como empresa
+// ===================================
+const ARCHIVO_AREAS = "areaARadicar";
+const NOMBRE_AREA_ESPERADA = "area a radicar";
+const INTERVALO_POLL_AREA_MS = 15 * 1000;
+const INTERVALO_REFRESH_PIN_MS = 2 * 60 * 1000;
 const DASHBOARD_URL = "https://annamineria.anm.gov.co/sigm/index.html#/extDashboard";
 const ESPERA_DASHBOARD_MS = 3000;
 const MAX_INTENTOS_DASHBOARD = 3;
@@ -41,7 +48,7 @@ const RUTAS_FLUJO_RADICACION = [
 const MONITOREO_AREA_MS = 30 * 1000;
 const INTERVALO_PRIMERA_REVISION_MS = 1 * 1000;
 const INTERVALO_REVISION_AREA_MS = 5 * 1000;
-const ESPERA_ENTRE_AREAS_MS = 1000;
+const ESPERA_ENTRE_AREAS_MS = 30 * 1000;
 const INTERVALO_REVISION_ENTRE_AREAS_MS = 3 * 1000;
 const TIMEAREA_REINICIO_MS = 5 * 60 * 1000;
 const ESPERA_ANTES_CONTINUAR_AREA_MS = 400;
@@ -51,13 +58,90 @@ const Pines = JSON.parse(
 const MineralesPorEmpresa = JSON.parse(
   fs.readFileSync(path.join(__dirname, "DatosEMPRESAS", "Minerales.json"), "utf-8")
 );
-const Areas = JSON.parse(
-  fs.readFileSync(
-    path.join(__dirname, "areas", Empresa, `${ARCHIVO_AREAS}.json`),
-    "utf-8"
-  )
-);
-console.log(`Áreas cargadas: ${Empresa}/${ARCHIVO_AREAS}.json (${Areas.length} áreas)`);
+const RUTA_AREAS = path.join(__dirname, "areas", Empresa, `${ARCHIVO_AREAS}.json`);
+
+if (!Informacion_Empresas[Empresa]) {
+  console.error(`❌ La empresa "${Empresa}" no está en DatosEMPRESAS/InformacionEmpresas.json`);
+  process.exit(1);
+}
+if (!Pines[CodigoPin]) {
+  console.error(`❌ El pin "${CodigoPin}" no está en DatosEMPRESAS/Pines.json`);
+  process.exit(1);
+}
+if (Pines[CodigoPin].empresa && Pines[CodigoPin].empresa !== Empresa) {
+  console.log(
+    `⚠️ El pin "${CodigoPin}" está registrado para "${Pines[CodigoPin].empresa}", no para "${Empresa}".`.yellow
+  );
+}
+const Datos_Usuario = UsuarioAgente ? (Usuarios[Empresa] || {})[UsuarioAgente] : null;
+if (UsuarioAgente && !Datos_Usuario) {
+  console.error(`❌ El usuario "${UsuarioAgente}" no está en Usuarios.json dentro de "${Empresa}"`);
+  process.exit(1);
+}
+if (Datos_Usuario && Datos_Usuario.Nota) {
+  console.log(`⚠️ Nota de ${UsuarioAgente} en Usuarios.json: ${Datos_Usuario.Nota}`.yellow);
+}
+
+function leerAreaARadicar() {
+  try {
+    const raw = JSON.parse(fs.readFileSync(RUTA_AREAS, "utf-8"));
+    if (!Array.isArray(raw) || !raw.length) return null;
+    const area =
+      raw.find(
+        (a) =>
+          String(a.NombreArea || "")
+            .trim()
+            .toLowerCase() === NOMBRE_AREA_ESPERADA.toLowerCase()
+      ) || raw[0];
+    return area || null;
+  } catch (error) {
+    console.log(`⚠️ No se pudo leer ${ARCHIVO_AREAS}.json:`, error.message);
+    return null;
+  }
+}
+
+function areaTieneDatos(area) {
+  if (!area) return false;
+  const referencia = String(area.Referencia || "").trim();
+  const celdas = Array.isArray(area.Celdas) ? area.Celdas : [];
+  const celdasOk = celdas.some((c) => String(c || "").trim().length > 0);
+  return referencia.length > 0 && celdasOk;
+}
+
+function recargarAreasDesdeJson() {
+  const raw = JSON.parse(fs.readFileSync(RUTA_AREAS, "utf-8"));
+  if (!Array.isArray(raw)) {
+    throw new Error(`${ARCHIVO_AREAS}.json debe ser un array`);
+  }
+  const conDatos = raw.filter((a) => areaTieneDatos(a));
+  return conDatos.length ? conDatos : raw;
+}
+
+let Areas = [];
+if (!fs.existsSync(RUTA_AREAS)) {
+  console.error(`No existe ${RUTA_AREAS}`);
+  process.exit(1);
+}
+{
+  const preview = leerAreaARadicar();
+  console.log(
+    colors.cyan.bold(
+      `═══ Visor ${Empresa} ═══ espera en PIN | revisa cada ${
+        INTERVALO_POLL_AREA_MS / 1000
+      }s | refresca cada ${INTERVALO_REFRESH_PIN_MS / 60000} min | misma sesión al radicar`
+    )
+  );
+  console.log(
+    `Pin: ${CodigoPin} | Entra como: ${
+      Datos_Usuario ? `agente ${UsuarioAgente} (${Datos_Usuario.Usuario})` : "empresa"
+    }`
+  );
+  console.log(
+    `Vigilando: ${ARCHIVO_AREAS}.json | "${NOMBRE_AREA_ESPERADA}" | datos: ${
+      areaTieneDatos(preview) ? "SÍ" : "aún vacía"
+    }`
+  );
+}
 const Datos_Empresa = Informacion_Empresas[Empresa];
 const Datos_Economicos = Informacion_Economica[Empresa];
 const Datos_Geologos = Geologos[Empresa];
@@ -66,18 +150,12 @@ const Datos_Contadores = Contadores[Empresa];
 
 const user1 = Datos_Empresa.Codigo;
 const pass1 = Datos_Empresa.Contraseña;
-const user2 = '83955';
-const pass2 = 'ANM2026ANNA$';
-const Agente = 1;
+const user2 = Datos_Usuario ? Datos_Usuario.Usuario : null;
+const pass2 = Datos_Usuario ? Datos_Usuario.Clave : null;
+const Agente = Datos_Usuario ? 1 : 0;
 const manual = 0; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
-const continuarManual = 0; // 1 = el bot solo coloca datos; el humano hace clic en Continuar; 0 = bot también da Continuar
-const continuarAreaManual = 1; // 1 = el humano da Continuar después de colocar el área; 0 = clic automático
-if (continuarManual == 1) {
-  console.log(
-    "⚙️ continuarManual=1: el bot colocará datos y esperará tu clic en Continuar."
-      .cyan.bold
-  );
-}
+const continuarManual = 0; // tras detectar área, el bot da Continuar
+const continuarAreaManual = 0; // 1 = el humano da Continuar después de colocar el área; 0 = clic automático
 if (continuarAreaManual == 1) {
   console.log(
     "⚙️ continuarAreaManual=1: después de colocar el área, el bot esperará tu clic en Continuar."
@@ -88,6 +166,7 @@ var EnviarCorreosParaPestanas = 0;
 var CorreoAvisoLoginEnviado = false;
 var contreapertura = 0;
 var ContadorVueltas = 0;
+var mineriaSesionActiva = 0;
 var Band = 0;
 var ComparacionCeldas = "";
 var areaFiltrado;
@@ -115,7 +194,10 @@ async function Pagina() {
     devtools: false,
   });
 
-  Mineria(browser, Pin);
+  programarReinicioMineria(browser, Pin, {
+    cerrarTodo: false,
+    etiqueta: "inicio",
+  });
 }
 
 
@@ -166,8 +248,90 @@ async function Login(page) {
   console.log("✅ Login completado. Dashboard detectado:", DASHBOARD_URL);
 }
 
-async function RadicarPropuesta(page) {
+async function cerrarOtrasPestanas(browser, pageAConservar) {
+  const pages = await browser.pages();
+  for (const p of pages) {
+    if (p === pageAConservar) continue;
+    try {
+      await p.close();
+    } catch (e) {
+      // pestaña ya cerrada
+    }
+  }
+}
+
+async function cerrarTodasLasPestanas(browser) {
+  const pages = await browser.pages();
+  for (const p of pages) {
+    try {
+      await p.close();
+    } catch (e) {
+      // pestaña ya cerrada
+    }
+  }
+}
+
+function sesionMineriaValida(sesionId) {
+  return sesionId === mineriaSesionActiva;
+}
+
+function programarReinicioMineria(browser, Pin, opciones = {}) {
+  const { timers = [], etiqueta = "", cerrarTodo = true } = opciones;
+  mineriaSesionActiva++;
+  const sesion = mineriaSesionActiva;
+
+  timers.forEach((timer) => {
+    if (timer) clearTimeout(timer);
+  });
+
+  if (etiqueta) {
+    console.log(`♻️ Reinicio Mineria (${etiqueta}) — sesión ${sesion}`.magenta);
+  }
+
+  (async () => {
+    if (cerrarTodo) {
+      await cerrarTodasLasPestanas(browser);
+    }
+    if (!sesionMineriaValida(sesion)) return;
+    Mineria(browser, Pin, sesion);
+  })();
+
+  return sesion;
+}
+
+async function tomarPestanaActivaTrasRadicar(browser, pageAnterior, pagesAntes) {
+  await pageAnterior.waitForTimeout(3000).catch(() => {});
+  const pagesAhora = await browser.pages();
+  const nuevas = pagesAhora.filter((p) => !pagesAntes.includes(p));
+  let pageActiva = nuevas.length
+    ? nuevas[nuevas.length - 1]
+    : pageAnterior;
+
+  for (const p of pagesAhora) {
+    if (p === pageActiva) continue;
+    try {
+      await p.close();
+    } catch (e) {}
+  }
+
+  if (pageActiva !== pageAnterior) {
+    console.log(
+      "📑 Portal abrió pestaña nueva al radicar; se cerró la anterior.".cyan
+    );
+    try {
+      await pageAnterior.close();
+    } catch (e) {}
+  }
+
+  await cerrarOtrasPestanas(browser, pageActiva);
+  await pageActiva.waitForTimeout(4000).catch(() => {});
+  return pageActiva;
+}
+
+async function RadicarPropuesta(page, browser) {
   try {
+    const pagesAntes = await browser.pages();
+
     const solicitudes = await page.$x('//span[contains(.,"Solicitudes")]');
     if (!solicitudes.length) {
       throw new Error("No se encontró el menú 'Solicitudes'");
@@ -187,30 +351,50 @@ async function RadicarPropuesta(page) {
 
     await lblRadicar[0].click();
     console.log("✅ Radicar propuesta: clic completado.");
-    return true;
+
+    const pageActiva = await tomarPestanaActivaTrasRadicar(
+      browser,
+      page,
+      pagesAntes
+    );
+    return { ok: true, page: pageActiva };
   } catch (error) {
     console.error("Radicar propuesta falló:", error.message);
-    return false;
+    return { ok: false, page };
   }
 }
 
-async function esperarDashboardYRadicar(page) {
+async function esperarDashboardYRadicar(page, browser) {
+  let pageActual = page;
   for (let intento = 1; intento <= MAX_INTENTOS_DASHBOARD; intento++) {
     console.log(
       `Intento ${intento}/${MAX_INTENTOS_DASHBOARD}: esperando ${ESPERA_DASHBOARD_MS / 1000} segundos...`
     );
-    await page.waitForTimeout(ESPERA_DASHBOARD_MS);
+    await pageActual.waitForTimeout(ESPERA_DASHBOARD_MS);
 
-    const exito = await RadicarPropuesta(page);
-    if (exito) {
+    const resultado = await RadicarPropuesta(pageActual, browser);
+    pageActual = resultado.page;
+    if (resultado.ok) {
       console.log("Dashboard listo y radicar propuesta completado.");
-      return true;
+      await cerrarOtrasPestanas(browser, pageActual);
+      // Esperar a que cargue la pantalla siguiente (empresa o PIN)
+      try {
+        await pageActual.waitForSelector(
+          "#submitterPersonOrganizationNameId, select[id=\"pinSlctId\"]",
+          { visible: true, timeout: 30000 }
+        );
+      } catch (e) {
+        console.log("⚠️ Aún cargando tras radicar:", e.message);
+        await pageActual.waitForTimeout(5000);
+      }
+      return { ok: true, page: pageActual };
     }
 
     console.log(`Intento ${intento} falló.`);
+    await cerrarOtrasPestanas(browser, pageActual);
   }
 
-  return false;
+  return { ok: false, page: pageActual };
 }
 
 async function Agente_Selecion_Empresa(page) {
@@ -340,7 +524,10 @@ async function clickContinuarArea(page, indice = 1) {
       await corregirMineralesSiObligatorio(page);
       await esperarContinuarHumano(page, "Área corregida");
     }
-    console.log("✅ Continuar del área detectado; esperando navegación o respuesta del portal.".green);
+    console.log(
+      "✅ Continuar del área detectado; esperando navegación o respuesta del portal."
+        .green
+    );
     return;
   }
 
@@ -380,22 +567,11 @@ function reiniciarMineriaDesdeTimer(browser, Pin, page, etiqueta = "Timer") {
       );
       return;
     }
-    try {
-      page.close();
-    } catch (error) {
-      console.log("No se pudo cerrar la página:", error.message);
-    }
-    Mineria(browser, Pin);
+    programarReinicioMineria(browser, Pin, { etiqueta });
   })();
 }
 
 async function reiniciarMineria(browser, Pin, page, timers = []) {
-  timers.forEach((timer) => {
-    if (timer) {
-      clearTimeout(timer);
-    }
-  });
-
   if (estaEnFlujoRadicacion(page)) {
     console.log(
       "✅ Ya está en pantalla de radicación; no se reinicia Mineria."
@@ -410,13 +586,10 @@ async function reiniciarMineria(browser, Pin, page, timers = []) {
     return false;
   }
 
-  console.log("♻️ Reiniciando Mineria por error o bloqueo...");
-  try {
-    await page.close();
-  } catch (error) {
-    console.log("No se pudo cerrar la página:", error.message);
-  }
-  Mineria(browser, Pin);
+  programarReinicioMineria(browser, Pin, {
+    timers,
+    etiqueta: "error o bloqueo",
+  });
   return true;
 }
 
@@ -744,6 +917,89 @@ async function seleccionarOpcionPorTexto(page, selector, textoParcial) {
   console.log(`✅ Select ${selector} -> "${ok.texto}"`);
   await page.waitForTimeout(600);
   return ok;
+}
+
+/**
+ * Tras salir del PIN (sobre todo después de larga espera del visor):
+ * espera carga, fuerza minerales y "Otro tipo de terreno" con reintentos.
+ */
+async function prepararSolicitudAntesDeAreas(page) {
+  console.log(
+    "⏳ Preparando solicitud: espera carga + minerales + tipo de terreno..."
+      .cyan
+  );
+
+  await page.waitForTimeout(2500);
+
+  try {
+    await page.waitForSelector('select[name="areaOfConcessionSlct"]', {
+      visible: true,
+      timeout: 30000,
+    });
+  } catch (e) {
+    console.log(
+      "⚠️ Select de terreno aún no visible, esperando más...",
+      e.message
+    );
+    await page.waitForTimeout(4000);
+    await page.waitForSelector('select[name="areaOfConcessionSlct"]', {
+      visible: true,
+      timeout: 30000,
+    });
+  }
+
+  let mineralesOk = false;
+  for (let intento = 1; intento <= 3; intento++) {
+    console.log(`Minerales intento ${intento}/3...`);
+    mineralesOk = await asegurarMineralesColocados(page, {
+      timeout: 20000,
+      etiqueta: `post-PIN-${intento}`,
+      soloSiError: false,
+    });
+    if (mineralesOk) break;
+    await page.waitForTimeout(2000);
+  }
+  if (!mineralesOk) {
+    console.log(
+      "⚠️ No se confirmó colocación de minerales; se continúa y se reintentará si el portal marca error."
+        .yellow
+    );
+  }
+
+  await page.waitForTimeout(1000);
+
+  let terrenoOk = false;
+  for (let intento = 1; intento <= 3; intento++) {
+    try {
+      console.log(`Tipo de terreno intento ${intento}/3...`);
+      await seleccionarOpcionPorTexto(
+        page,
+        'select[name="areaOfConcessionSlct"]',
+        "Otro tipo de terreno"
+      );
+      const texto = await page.$eval(
+        'select[name="areaOfConcessionSlct"]',
+        (el) => {
+          const opt = el.options[el.selectedIndex];
+          return opt ? opt.textContent.trim() : "";
+        }
+      );
+      if (texto.includes("Otro tipo de terreno")) {
+        terrenoOk = true;
+        console.log("✅ Tipo de terreno confirmado:", texto);
+        break;
+      }
+      console.log("⚠️ Select no quedó en 'Otro tipo de terreno':", texto);
+    } catch (e) {
+      console.log(`⚠️ Intento terreno ${intento} falló:`, e.message);
+    }
+    await page.waitForTimeout(1500);
+  }
+  if (!terrenoOk) {
+    throw new Error("No se pudo fijar 'Otro tipo de terreno' tras 3 intentos");
+  }
+
+  await page.waitForTimeout(800);
 }
 
 async function MonitorearAreas(page, IdArea, Celda, Area) {
@@ -2051,58 +2307,231 @@ async function verificarCaptchaResuelto(page, imagendeCaptcha) {
 }
 
 
-function Mineria(browser, Pin,) {
+/**
+ * Refresco anti-inactividad: dashboard → radicar → empresa → PIN (sin Continuar).
+ */
+async function refrescarHastaPin(page, browser, Pin) {
+  console.log(
+    "♻️ Refresh anti-inactividad: dashboard → radicar → empresa → PIN..."
+      .magenta
+  );
+
+  await cerrarOtrasPestanas(browser, page);
+
+  await page.goto(DASHBOARD_URL, {
+    waitUntil: "domcontentloaded",
+    timeout: 60000,
+  });
+  console.log("⏳ Esperando carga del dashboard...");
+  await page.waitForTimeout(5000);
+
+  const radicado = await esperarDashboardYRadicar(page, browser);
+  page = radicado.page;
+  if (!radicado.ok) {
+    throw new Error("No se pudo radicar propuesta en el refresh");
+  }
+
+  console.log("⏳ Esperando carga tras radicar...");
+  await page.waitForTimeout(3000);
+
+  if (Agente == 1) {
+    await Agente_Selecion_Empresa(page);
+    await page.waitForTimeout(2000);
+  }
+
+  await page.waitForSelector('select[id="pinSlctId"]', {
+    visible: true,
+    timeout: 60000,
+  });
+  await page.waitForTimeout(1500);
+  await colocarPin(page, Pin);
+  await cerrarOtrasPestanas(browser, page);
+  return page;
+}
+
+/**
+ * Espera en PIN hasta que areaARadicar.json tenga datos.
+ * Primera validación al entrar (tras colocar PIN); luego poll cada 15s.
+ * Refresh keep-alive cada 2min; una sola pestaña activa.
+ */
+async function esperarAreaEnJsonManteniendoPin(page, browser, Pin, sesionId) {
+  let ultimoRefresh = Date.now();
+  let pageActual = page;
+  let primeraValidacion = true;
+
+  console.log(
+    `⏳ Visor en PIN: poll cada ${INTERVALO_POLL_AREA_MS / 1000}s | refresh cada ${INTERVALO_REFRESH_PIN_MS / 1000}s`
+      .yellow.bold
+  );
+  console.log(
+    `   Esperando datos en "${NOMBRE_AREA_ESPERADA}" → ${RUTA_AREAS}`.yellow
+  );
+
+  while (true) {
+    if (!sesionMineriaValida(sesionId)) {
+      console.log("Espera PIN cancelada (hay un reinicio más reciente).".gray);
+      return null;
+    }
+
+    await cerrarOtrasPestanas(browser, pageActual);
+
+    if (primeraValidacion) {
+      console.log("🔍 Primera validación del JSON (tras colocar PIN)...".cyan);
+      primeraValidacion = false;
+    }
+
+    const area = leerAreaARadicar();
+    if (areaTieneDatos(area)) {
+      console.log(
+        "✅ Área con datos detectada. Continuando flujo normal de radicación..."
+          .green.bold
+      );
+      console.log(JSON.stringify(area, null, 2));
+      return { page: pageActual, area };
+    }
+
+    const ahora = Date.now();
+    if (ahora - ultimoRefresh >= INTERVALO_REFRESH_PIN_MS) {
+      try {
+        pageActual = await refrescarHastaPin(pageActual, browser, Pin);
+        ultimoRefresh = Date.now();
+        // Tras recolocar PIN, validar de inmediato (sin esperar el poll)
+        console.log("🔍 Validación inmediata tras refresh/PIN...".cyan);
+        const areaTrasRefresh = leerAreaARadicar();
+        if (areaTieneDatos(areaTrasRefresh)) {
+          console.log(
+            "✅ Área con datos detectada. Continuando flujo normal de radicación..."
+              .green.bold
+          );
+          console.log(JSON.stringify(areaTrasRefresh, null, 2));
+          return { page: pageActual, area: areaTrasRefresh };
+        }
+      } catch (error) {
+        console.error("Error en refresh PIN:", error.message);
+        if (!sesionMineriaValida(sesionId)) return null;
+        console.log("Reabriendo página e intentando de nuevo...");
+        await cerrarTodasLasPestanas(browser);
+        if (!sesionMineriaValida(sesionId)) return null;
+        pageActual = await browser.newPage();
+        await cerrarOtrasPestanas(browser, pageActual);
+        await Login(pageActual);
+        pageActual = await refrescarHastaPin(pageActual, browser, Pin);
+        ultimoRefresh = Date.now();
+        console.log("🔍 Validación inmediata tras re-login/PIN...".cyan);
+        const areaTrasLogin = leerAreaARadicar();
+        if (areaTieneDatos(areaTrasLogin)) {
+          console.log(
+            "✅ Área con datos detectada. Continuando flujo normal de radicación..."
+              .green.bold
+          );
+          console.log(JSON.stringify(areaTrasLogin, null, 2));
+          return { page: pageActual, area: areaTrasLogin };
+        }
+      }
+    } else {
+      const faltan = Math.ceil(
+        (INTERVALO_REFRESH_PIN_MS - (ahora - ultimoRefresh)) / 1000
+      );
+      console.log(
+        `[${new Date().toLocaleTimeString()}] Sin datos aún. Próximo poll en ${INTERVALO_POLL_AREA_MS / 1000}s | refresh PIN en ~${faltan}s`
+          .gray
+      );
+    }
+
+    await pageActual.waitForTimeout(INTERVALO_POLL_AREA_MS);
+  }
+}
+
+function Mineria(browser, Pin, sesionId) {
+  if (!sesionId) {
+    mineriaSesionActiva++;
+    sesionId = mineriaSesionActiva;
+  }
+
   (async () => {
     let page;
     const timersActivos = [];
 
+    if (!sesionMineriaValida(sesionId)) {
+      console.log("Sesión Mineria obsoleta; se omite arranque.".gray);
+      return;
+    }
+
     try {
     console.log("Esta es la vuelta " + ContadorVueltas);
     page = await browser.newPage();
+    await cerrarOtrasPestanas(browser, page);
 
     let Primerpaso = setTimeout(() => {
       console.log("ENTRO EN EL PRIMERPASO (timeout de login manual)");
 
-      page.close();
-      Mineria(browser, Pin);
+      programarReinicioMineria(browser, Pin, {
+        timers: timersActivos,
+        etiqueta: "Primerpaso",
+      });
     }, 30 * 60 * 1000);
     timersActivos.push(Primerpaso);
 
     await Login(page);
+    if (!sesionMineriaValida(sesionId)) return;
 
-    const radicado = await esperarDashboardYRadicar(page);
+    const radicado = await esperarDashboardYRadicar(page, browser);
+    if (!sesionMineriaValida(sesionId)) return;
+    page = radicado.page;
 
-    if (!radicado) {
+    if (!radicado.ok) {
       console.log(
         "No se pudo radicar propuesta tras 3 intentos. Reiniciando..."
       );
       clearTimeout(Primerpaso);
-      page.close();
-      Mineria(browser, Pin);
+      programarReinicioMineria(browser, Pin, {
+        timers: timersActivos,
+        etiqueta: "radicar fallido",
+      });
       return;
     }
 
     clearTimeout(Primerpaso);
 
+    // NO Segundopaso durante la espera del JSON: cerraba la página a los 30s
     let Segundopaso = null;
-    if (manual != 1 && continuarManual != 1) {
-      Segundopaso = setTimeout(() => {
-        console.log("ENTRO EN EL Segundopaso");
-        page.close();
-        Mineria(browser, Pin);
-      }, 30000);
-      timersActivos.push(Segundopaso);
-    }
 
     if (Agente == 1) {
       await Agente_Selecion_Empresa(page);
+      await page.waitForTimeout(2000);
     }
 
-    const { closestDateOption, input } = await seleccionar_Pin(page, Pin, 0);
+    // Visor: solo coloca PIN y espera el JSON (misma sesión; no otro proceso)
+    await page.waitForSelector('select[id="pinSlctId"]', {
+      visible: true,
+      timeout: 60000,
+    });
+    await page.waitForTimeout(1500);
+    const pinTexto = await colocarPin(page, Pin);
+    const closestDateOption = pinTexto;
+    const input = pinTexto;
 
-    if (manual == 1 || continuarManual == 1) {
-      await esperarPantallaAreas(page);
-    } else if (sigueEnPantallaPin(page) || (await detectarErrorPinObligatorio(page))) {
+    const espera = await esperarAreaEnJsonManteniendoPin(
+      page,
+      browser,
+      Pin,
+      sesionId
+    );
+    if (!espera || !sesionMineriaValida(sesionId)) return;
+    page = espera.page;
+
+    Areas = recargarAreasDesdeJson();
+    Band = 0;
+    console.log(
+      `Áreas cargadas para radicar: ${ARCHIVO_AREAS}.json (${Areas.length} área(s))`
+        .cyan.bold
+    );
+
+    await page.waitForXPath('//span[contains(.,"Continuar")]');
+    await clickContinuar(page, 1);
+    await page.waitForTimeout(3000);
+
+    if (sigueEnPantallaPin(page) || (await detectarErrorPinObligatorio(page))) {
       console.log("🔴 Sigue en pantalla PIN. Reintentando empresa y PIN...");
       await recuperarEmpresaYPin(page, Pin);
       await avanzarDesdePin(page);
@@ -2112,13 +2541,12 @@ function Mineria(browser, Pin,) {
         await reiniciarMineria(browser, Pin, page, timersActivos);
         return;
       }
+      await page.waitForTimeout(2500);
     }
 
-    await asegurarMineralesColocados(page, {
-      timeout: 5000,
-      etiqueta: "pre-áreas",
-      soloSiError: true,
-    });
+    // Tras la espera del JSON la página a veces no alcanza a cargar:
+    // forzar minerales + "Otro tipo de terreno" (antes soloSiError saltaba minerales).
+    await prepararSolicitudAntesDeAreas(page);
 
     if (Segundopaso) clearTimeout(Segundopaso);
 
@@ -2130,15 +2558,9 @@ function Mineria(browser, Pin,) {
 
     page.setDefaultTimeout(30000);
 
-    await seleccionarOpcionPorTexto(
-      page,
-      'select[name="areaOfConcessionSlct"]',
-      "Otro tipo de terreno"
-    );
-
     const continDetallesdelArea = await page.$x('//a[contains(.,"área")]');
     await continDetallesdelArea[4].click();
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(1500);
 
     await seleccionarOpcionPorTexto(
       page,
@@ -2151,9 +2573,12 @@ function Mineria(browser, Pin,) {
     while (true) {
       let TimeArea;
 
+      if (!sesionMineriaValida(sesionId)) return;
+
       try {
+      await cerrarOtrasPestanas(browser, page);
       const Pestanas = await browser.pages();
-      console.log(`HAY ${Pestanas.length} PESTAÑAS ABIERTAS`);
+      console.log(`HAY ${Pestanas.length} PESTAÑA(S) ABIERTA(S)`);
       if (Pestanas.length >= 4) {
         EnviarCorreosParaPestanas++;
         if (EnviarCorreosParaPestanas <= 2) {
@@ -2297,8 +2722,7 @@ function Mineria(browser, Pin,) {
       TimeNOpaso = setTimeout(() => {
         bandera = 99;
         console.log("ENTRO EN EL TimeNOpaso");
-        page.close();
-        Mineria(browser, Pin);
+        programarReinicioMineria(browser, Pin, { etiqueta: "TimeNOpaso" });
       }, 20000);
     }
 
@@ -2401,8 +2825,7 @@ function Mineria(browser, Pin,) {
     if (continuarManual != 1) {
       Radisegundo = setTimeout(() => {
         console.log("ENTRO EN EL Radisegundo");
-        //page.close();
-        Mineria(browser, Pin);
+        programarReinicioMineria(browser, Pin, { etiqueta: "Radisegundo" });
       }, 10000);
     }
 
@@ -2443,9 +2866,8 @@ function Mineria(browser, Pin,) {
     let RadiTercero = null;
     if (continuarManual != 1) {
       RadiTercero = setTimeout(() => {
-        console.log("ENTRO EN EL Radisegundo");
-        //page.close();
-        Mineria(browser, Pin);
+        console.log("ENTRO EN EL RadiTercero");
+        programarReinicioMineria(browser, Pin, { etiqueta: "RadiTercero" });
       }, 120000);
     }
 
@@ -2517,7 +2939,7 @@ function Mineria(browser, Pin,) {
     //CORREO RADICACION
     Correo(2, Areas[Band].NombreArea, Areas[Band].Referencia);
     await page.waitForTimeout(180000);
-    Mineria(browser, Pin);
+    programarReinicioMineria(browser, Pin, { etiqueta: "post-radicación" });
 
     } catch (error) {
       console.error("❌ Error fatal en Mineria:", error.message);

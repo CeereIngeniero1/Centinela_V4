@@ -54,7 +54,7 @@ const Pines = JSON.parse(
 const MineralesPorEmpresa = JSON.parse(
   fs.readFileSync(path.join(__dirname, "DatosEMPRESAS", "Minerales.json"), "utf-8")
 );
-const RUTA_AREAS = path.join(__dirname, "areas", `${ARCHIVO_AREAS}.json`);
+const RUTA_AREAS = path.join(__dirname, "areas", Empresa, `${ARCHIVO_AREAS}.json`);
 
 function leerAreaARadicar() {
   try {
