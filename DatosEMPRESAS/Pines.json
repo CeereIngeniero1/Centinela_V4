@@ -130,6 +130,11 @@
     "vencimiento": "31/AGO/2026",
     "empresa": "MAX"
   },
+  "V6": {
+    "pin": "20261002112557",
+    "vencimiento": "02/NOV/2026",
+    "empresa": "MAX"
+  },
   "OP": {
     "pin": "20260528151008",
     "vencimiento": "28/JUN/2026",

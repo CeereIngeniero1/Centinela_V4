@@ -28,7 +28,7 @@ const EquipoActual = EquiposGenerales[NombreEquipo];
 console.log(" Equipo Actual: ", EquipoActual);
 
 const Empresa = "MAX";
-const CodigoPin = "V2";
+const CodigoPin = "V6";
 const ARCHIVO_AREAS = "507531";
 const DASHBOARD_URL = "https://annamineria.anm.gov.co/sigm/index.html#/extDashboard";
 const ESPERA_DASHBOARD_MS = 3000;

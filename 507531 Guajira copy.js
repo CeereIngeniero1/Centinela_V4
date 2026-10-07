@@ -29,7 +29,7 @@ console.log(" Equipo Actual: ", EquipoActual);
 
 const Empresa = "MAX";
 const CodigoPin = "V6";
-const ARCHIVO_AREAS = "Max";
+const ARCHIVO_AREAS = "507531 copy";
 const DASHBOARD_URL = "https://annamineria.anm.gov.co/sigm/index.html#/extDashboard";
 const ESPERA_DASHBOARD_MS = 3000;
 const MAX_INTENTOS_DASHBOARD = 3;
@@ -42,7 +42,7 @@ const RUTAS_FLUJO_RADICACION = [
 const MONITOREO_AREA_MS = 30 * 1000;
 const INTERVALO_PRIMERA_REVISION_MS = 1 * 1000;
 const INTERVALO_REVISION_AREA_MS = 5 * 1000;
-const ESPERA_ENTRE_AREAS_MS = 30 * 1000;
+const ESPERA_ENTRE_AREAS_MS = 1000;
 const INTERVALO_REVISION_ENTRE_AREAS_MS = 3 * 1000;
 const TIMEAREA_REINICIO_MS = 5 * 60 * 1000;
 const ESPERA_ANTES_CONTINUAR_AREA_MS = 400;
@@ -67,11 +67,11 @@ const Datos_Contadores = Contadores[Empresa];
 
 const user1 = Datos_Empresa.Codigo;
 const pass1 = Datos_Empresa.Contraseña;
-const user2 = '91311';
-const pass2 = 'pW0*kC1*rQ';
-const Agente = 0;
+const user2 = '83401';
+const pass2 = 'G64J1R4M4XR3S2026$';
+const Agente = 1;
 const manual = 0; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
-const continuarManual = 0; // 1 = el bot solo coloca datos; el humano hace clic en Continuar; 0 = bot también da Continuar
+const continuarManual = 1; // 1 = el bot solo coloca datos; el humano hace clic en Continuar; 0 = bot también da Continuar
 const continuarAreaManual = 1; // 1 = el humano da Continuar después de colocar el área; 0 = clic automático
 const prevenirNoAdyacentes = 0; // 1 = si al quitar las no disponibles el área queda partida, envía solo el bloque más grande; 0 = envía todo y espera el error de ANNA
 if (continuarManual == 1) {
@@ -107,8 +107,8 @@ async function Pagina() {
 
   const browser = await puppeteer.launch({
     //executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-    executablePath:
-      "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+    //executablePath: "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+    executablePath: puppeteer.executablePath(), // Chromium de Puppeteer
     // Reemplaza con la ruta real a tu Google Chrome
     headless: false,
     args: [
@@ -342,7 +342,10 @@ async function clickContinuarArea(page, indice = 1) {
       await corregirMineralesSiObligatorio(page);
       await esperarContinuarHumano(page, "Área corregida");
     }
-    console.log("✅ Continuar del área detectado; esperando navegación o respuesta del portal.".green);
+    console.log(
+      "✅ Continuar del área detectado; esperando navegación o respuesta del portal."
+        .green
+    );
     return;
   }
 
@@ -2479,101 +2482,9 @@ function Mineria(browser, Pin,) {
 
     await Documentos_Adicionales(page, Empresa);
 
-
-
-    const continPag = await page.$x('//span[contains(.,"Continuar")]');
-    if (continuarManual == 1) {
-      await clickContinuar(page, 1);
-    } else {
-      await continPag[1].click();
-    }
-
-    if (Radisegundo) clearTimeout(Radisegundo);
-    await page.waitForNavigation({
-      waitUntil: "networkidle0",
-    });
-    console.log(" si navego ");
-
-
-
-
-    let RadiTercero = null;
-    if (continuarManual != 1) {
-      RadiTercero = setTimeout(() => {
-        console.log("ENTRO EN EL Radisegundo");
-        //page.close();
-        Mineria(browser, Pin);
-      }, 120000);
-    }
-
-    //  await page.waitForTimeout(1000000);
-
-
-    while (true) {
-
-      let resultado = await RECAPTCHA(page);
-      if (resultado == 1) {
-        break;
-      }
-
-    }
-
-    var imagendeCaptcha = 0;
-    while (true) {
-      await page.waitForTimeout(1500);
-
-      if (page.url() === 'https://annamineria.anm.gov.co/sigm/index.html#/p_CaaIataSummary') {
-        let resultado = await verificarCaptchaResuelto(page, imagendeCaptcha);
-        if (resultado === 1) {
-          if (RadiTercero) clearTimeout(RadiTercero);
-          break;
-        } else if (resultado === 2) {
-          console.log("El captcha sigue en modo reto de imagenes");
-          Correo(6, Areas[Band].NombreArea, Areas[Band].Referencia);
-          // lO RETIRO PORQUE NO VALE LA PENA
-          // Mineria(browser, Pin);
-          imagendeCaptcha = 1;
-        } else {
-          // await RECAPTCHA(page);
-        }
-
-      } else if (page.url() === 'https://annamineria.anm.gov.co/sigm/index.html#/p_CaaIataAttachDocuments') {
-        const posibleContinuar = await page.$x('//span[contains(.,"Continuar")]');
-        if (posibleContinuar.length > 0) {
-          console.log("⚠️ Se encontró el botón 'Continuar' en la página.");
-          if (continuarManual == 1) {
-            await clickContinuar(page, 1);
-          } else {
-            console.log([posibleContinuar]);
-            await posibleContinuar[1].click();
-          }
-          await page.waitForNavigation({
-            waitUntil: "networkidle0",
-          });
-          await RECAPTCHA(page);
-        }
-      }
-    }
-
-    // await page.waitForTimeout(1000000);
-
-    console.log("51. Bóton Radicar");
-
-    const btnRadicar1 = await page.$x('//span[contains(.,"Radicar")]');
-    console.log("Este es el boton radicar : " + btnRadicar1);
-
-    console.log("Le di click");
-
-    try {
-      await btnRadicar1[1].click();
-    } catch (exepcion) {
-      console.log("La 1 tampoco Y_Y");
-    }
-
-
-    //CORREO RADICACION
+    // MODO PRUEBA: no Continuar → Radicar; solo aviso y espera
     Correo(2, Areas[Band].NombreArea, Areas[Band].Referencia);
-    await page.waitForTimeout(180000);
+    await page.waitForTimeout(999000);
     Mineria(browser, Pin);
 
     } catch (error) {
@@ -2651,8 +2562,8 @@ function Correo(Tipo, Area, Celda) {
 
   let mailOptions = {
     from: msg + '"Ceere" <correomineria2@ceere.net>', //Deje eso quieto Outlook porne demasiados problemas
-    to: "jorgecalle@hotmail.com, jorgecaller@gmail.com, alexisaza@hotmail.com,  ceereweb@gmail.com, Soporte2ceere@gmail.com, soportee4@gmail.com, soporte.ceere06068@gmail.com",
-    //to: '  Soporte2ceere@gmail.com',
+    //to: "jorgecalle@hotmail.com, jorgecaller@gmail.com, alexisaza@hotmail.com,  ceereweb@gmail.com, Soporte2ceere@gmail.com, soportee4@gmail.com, soporte.ceere06068@gmail.com",
+    to: '  Soporte2ceere@gmail.com',
     subject: "LA AREA ES-> " + Area,
     text: "LA AREA ES->  " + Area + "  " + Celda,
     html: `
