@@ -1,1 +1,0 @@
-start /d "../../../" node "510346 B Provenza.js"
