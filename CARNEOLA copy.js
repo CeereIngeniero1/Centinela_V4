@@ -16,6 +16,7 @@ const {
   Contadores,
 } = require("./datosEmpresas");
 const { Documentos_Adicionales } = require("./documentosAdicionales");
+const { gruposAdyacentes } = require("./adyacencia");
 
 
 
@@ -72,6 +73,7 @@ const Agente = 1;
 const manual = 0; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
 const continuarManual = 0; // 1 = el bot solo coloca datos; el humano hace clic en Continuar; 0 = bot también da Continuar
 const continuarAreaManual = 0; // 1 = el humano da Continuar después de colocar el área; 0 = clic automático
+const prevenirNoAdyacentes = 0; // 1 = si al quitar las no disponibles el área queda partida, envía solo el bloque más grande; 0 = envía todo y espera el error de ANNA
 if (continuarManual == 1) {
   console.log(
     "⚙️ continuarManual=1: el bot colocará datos y esperará tu clic en Continuar."
@@ -914,6 +916,21 @@ async function pasarSiguienteArea(page) {
   }
 }
 
+function celdasColocadasActuales() {
+  return ComparacionCeldas?.length
+    ? ComparacionCeldas
+    : Areas[Band].Celdas[0].split(",").map((celda) => celda.trim());
+}
+
+function mostrarBloquesAdyacencia(titulo, grupos) {
+  console.log(
+    `${titulo}: ${grupos.length} bloque(s) de ${grupos.map((g) => g.length).join(", ")} celdas`.yellow.bold
+  );
+  grupos.slice(1).forEach((grupo, i) => {
+    console.log(`   Bloque ${i + 2} (queda por fuera): ${grupo.join(", ")}`.gray);
+  });
+}
+
 async function intentarReorganizarArea(page) {
   const maxIntentos = 3;
 
@@ -923,20 +940,22 @@ async function intentarReorganizarArea(page) {
 
   for (let intento = 1; intento <= maxIntentos; intento++) {
     try {
-      const celdasNoDisponibles = await page.$$eval("a.errorMsg", (links) => {
-        return links
-          .filter((link) =>
-            link.textContent.includes(
-              "Las siguientes celdas de selección no están disponibles:"
-            )
-          )
-          .map((link) =>
-            link.textContent
-              .split(": ")[1]
-              .split(",")
-              .map((celda) => celda.trim())
-          );
-      });
+      const mensajesError = await page.$$eval("a.errorMsg", (links) =>
+        links.map((link) => link.textContent)
+      );
+      const celdasNoDisponibles = mensajesError
+        .filter((texto) =>
+          texto.includes("Las siguientes celdas de selección no están disponibles:")
+        )
+        .map((texto) =>
+          texto
+            .split(": ")[1]
+            .split(",")
+            .map((celda) => celda.trim())
+        );
+      const hayNoAdyacentes = mensajesError.some((texto) =>
+        texto.includes("Las celdas de selección no son adyacentes")
+      );
 
       console.log(
         `===============================================================================================`
@@ -947,7 +966,27 @@ async function intentarReorganizarArea(page) {
       // console.log(`CELDAS NO DISPONIBLES => `.red.bold);
       // console.log(`[${celdasNoDisponibles}]`);
 
-      if (!celdasNoDisponibles.length || !celdasNoDisponibles[0].length) {
+      if (hayNoAdyacentes) {
+        console.log("⚠️ ANNA respondió: Las celdas de selección no son adyacentes".red.bold);
+        const celdasActuales = celdasColocadasActuales();
+        const { grupos, invalidas } = gruposAdyacentes(celdasActuales);
+        if (invalidas.length) {
+          console.log(`Celdas con código no reconocido: ${invalidas.join(", ")}`.red);
+        }
+        mostrarBloquesAdyacencia(
+          `Las ${celdasActuales.length} celdas colocadas forman`,
+          grupos
+        );
+        if (grupos.length <= 1) {
+          console.log(
+            "Según la cuadrícula las celdas colocadas ya forman un solo bloque; no hay cómo reorganizar por adyacencia."
+              .red
+          );
+          return false;
+        }
+        areaFiltrado = grupos[0];
+        console.log(`Se colocará el bloque más grande: ${areaFiltrado.length} celdas.`.green.bold);
+      } else if (!celdasNoDisponibles.length || !celdasNoDisponibles[0].length) {
         console.log("No se encontraron celdas no disponibles para filtrar.");
         if (intento === 1) {
           console.log("Intentando Continuar tras error de área...");
@@ -967,25 +1006,43 @@ async function intentarReorganizarArea(page) {
             .cyan.bold
         );
         break;
-      }
-
-      const celdasNoDisponiblesLimpias = celdasNoDisponibles[0].map((celda) =>
-        celda.trim()
-      );
-      const areaCeldas = ComparacionCeldas?.length
-        ? ComparacionCeldas
-        : Areas[Band].Celdas[0].split(",").map((celda) => celda.trim());
-      areaFiltrado = areaCeldas.filter(
-        (celda) => !celdasNoDisponiblesLimpias.includes(celda)
-      );
-      console.log("area filtrado " + areaFiltrado);
-
-      if (areaFiltrado.length === 0) {
-        console.log(
-          `===============================================================================================`
-            .cyan.bold
+      } else {
+        const celdasNoDisponiblesLimpias = celdasNoDisponibles[0].map((celda) =>
+          celda.trim()
         );
-        return false;
+        const areaCeldas = celdasColocadasActuales();
+        areaFiltrado = areaCeldas.filter(
+          (celda) => !celdasNoDisponiblesLimpias.includes(celda)
+        );
+        console.log("area filtrado " + areaFiltrado);
+
+        if (areaFiltrado.length === 0) {
+          console.log(
+            `===============================================================================================`
+              .cyan.bold
+          );
+          return false;
+        }
+
+        const { grupos } = gruposAdyacentes(areaFiltrado);
+        if (grupos.length > 1) {
+          mostrarBloquesAdyacencia(
+            "⚠️ Al quitar las no disponibles, el área queda partida en",
+            grupos
+          );
+          if (prevenirNoAdyacentes == 1) {
+            areaFiltrado = grupos[0];
+            console.log(
+              `prevenirNoAdyacentes=1: se colocará solo el bloque más grande (${areaFiltrado.length} celdas).`
+                .green.bold
+            );
+          } else {
+            console.log(
+              "prevenirNoAdyacentes=0: se colocan todas; ANNA debería responder 'no son adyacentes'."
+                .yellow
+            );
+          }
+        }
       }
 
       console.log(`CELDAS DISPONIBLES => `.green.bold);

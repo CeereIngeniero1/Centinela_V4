@@ -16,6 +16,7 @@ const {
   Contadores,
 } = require("./datosEmpresas");
 const { Documentos_Adicionales } = require("./documentosAdicionales");
+const { gruposAdyacentes } = require("./adyacencia");
 
 
 
@@ -27,8 +28,8 @@ const EquipoActual = EquiposGenerales[NombreEquipo];
 console.log(" Equipo Actual: ", EquipoActual);
 
 const Empresa = "Collective";
-const CodigoPin = "C2";
-const ARCHIVO_AREAS = "510346 A";
+const CodigoPin = "Co";
+const ARCHIVO_AREAS = "Areaproyectonew";
 const DASHBOARD_URL = "https://annamineria.anm.gov.co/sigm/index.html#/extDashboard";
 const ESPERA_DASHBOARD_MS = 3000;
 const MAX_INTENTOS_DASHBOARD = 3;
@@ -41,7 +42,7 @@ const RUTAS_FLUJO_RADICACION = [
 const MONITOREO_AREA_MS = 30 * 1000;
 const INTERVALO_PRIMERA_REVISION_MS = 1 * 1000;
 const INTERVALO_REVISION_AREA_MS = 5 * 1000;
-const ESPERA_ENTRE_AREAS_MS = 1000;
+const ESPERA_ENTRE_AREAS_MS = 30 * 1000;
 const INTERVALO_REVISION_ENTRE_AREAS_MS = 3 * 1000;
 const TIMEAREA_REINICIO_MS = 5 * 60 * 1000;
 const ESPERA_ANTES_CONTINUAR_AREA_MS = 400;
@@ -66,12 +67,13 @@ const Datos_Contadores = Contadores[Empresa];
 
 const user1 = Datos_Empresa.Codigo;
 const pass1 = Datos_Empresa.Contraseña;
-const user2 = '83955';
-const pass2 = 'ANM2026ANNA$';
-const Agente = 1;
+const user2 = '96233';
+const pass2 = 'SuperAgente86*';
+const Agente = 0;
 const manual = 0; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
 const continuarManual = 0; // 1 = el bot solo coloca datos; el humano hace clic en Continuar; 0 = bot también da Continuar
 const continuarAreaManual = 1; // 1 = el humano da Continuar después de colocar el área; 0 = clic automático
+const prevenirNoAdyacentes = 0; // 1 = si al quitar las no disponibles el área queda partida, envía solo el bloque más grande; 0 = envía todo y espera el error de ANNA
 if (continuarManual == 1) {
   console.log(
     "⚙️ continuarManual=1: el bot colocará datos y esperará tu clic en Continuar."
@@ -340,7 +342,10 @@ async function clickContinuarArea(page, indice = 1) {
       await corregirMineralesSiObligatorio(page);
       await esperarContinuarHumano(page, "Área corregida");
     }
-    console.log("✅ Continuar del área detectado; esperando navegación o respuesta del portal.".green);
+    console.log(
+      "✅ Continuar del área detectado; esperando navegación o respuesta del portal."
+        .green
+    );
     return;
   }
 
@@ -911,6 +916,21 @@ async function pasarSiguienteArea(page) {
   }
 }
 
+function celdasColocadasActuales() {
+  return ComparacionCeldas?.length
+    ? ComparacionCeldas
+    : Areas[Band].Celdas[0].split(",").map((celda) => celda.trim());
+}
+
+function mostrarBloquesAdyacencia(titulo, grupos) {
+  console.log(
+    `${titulo}: ${grupos.length} bloque(s) de ${grupos.map((g) => g.length).join(", ")} celdas`.yellow.bold
+  );
+  grupos.slice(1).forEach((grupo, i) => {
+    console.log(`   Bloque ${i + 2} (queda por fuera): ${grupo.join(", ")}`.gray);
+  });
+}
+
 async function intentarReorganizarArea(page) {
   const maxIntentos = 3;
 
@@ -920,20 +940,22 @@ async function intentarReorganizarArea(page) {
 
   for (let intento = 1; intento <= maxIntentos; intento++) {
     try {
-      const celdasNoDisponibles = await page.$$eval("a.errorMsg", (links) => {
-        return links
-          .filter((link) =>
-            link.textContent.includes(
-              "Las siguientes celdas de selección no están disponibles:"
-            )
-          )
-          .map((link) =>
-            link.textContent
-              .split(": ")[1]
-              .split(",")
-              .map((celda) => celda.trim())
-          );
-      });
+      const mensajesError = await page.$$eval("a.errorMsg", (links) =>
+        links.map((link) => link.textContent)
+      );
+      const celdasNoDisponibles = mensajesError
+        .filter((texto) =>
+          texto.includes("Las siguientes celdas de selección no están disponibles:")
+        )
+        .map((texto) =>
+          texto
+            .split(": ")[1]
+            .split(",")
+            .map((celda) => celda.trim())
+        );
+      const hayNoAdyacentes = mensajesError.some((texto) =>
+        texto.includes("Las celdas de selección no son adyacentes")
+      );
 
       console.log(
         `===============================================================================================`
@@ -944,7 +966,27 @@ async function intentarReorganizarArea(page) {
       // console.log(`CELDAS NO DISPONIBLES => `.red.bold);
       // console.log(`[${celdasNoDisponibles}]`);
 
-      if (!celdasNoDisponibles.length || !celdasNoDisponibles[0].length) {
+      if (hayNoAdyacentes) {
+        console.log("⚠️ ANNA respondió: Las celdas de selección no son adyacentes".red.bold);
+        const celdasActuales = celdasColocadasActuales();
+        const { grupos, invalidas } = gruposAdyacentes(celdasActuales);
+        if (invalidas.length) {
+          console.log(`Celdas con código no reconocido: ${invalidas.join(", ")}`.red);
+        }
+        mostrarBloquesAdyacencia(
+          `Las ${celdasActuales.length} celdas colocadas forman`,
+          grupos
+        );
+        if (grupos.length <= 1) {
+          console.log(
+            "Según la cuadrícula las celdas colocadas ya forman un solo bloque; no hay cómo reorganizar por adyacencia."
+              .red
+          );
+          return false;
+        }
+        areaFiltrado = grupos[0];
+        console.log(`Se colocará el bloque más grande: ${areaFiltrado.length} celdas.`.green.bold);
+      } else if (!celdasNoDisponibles.length || !celdasNoDisponibles[0].length) {
         console.log("No se encontraron celdas no disponibles para filtrar.");
         if (intento === 1) {
           console.log("Intentando Continuar tras error de área...");
@@ -964,25 +1006,43 @@ async function intentarReorganizarArea(page) {
             .cyan.bold
         );
         break;
-      }
-
-      const celdasNoDisponiblesLimpias = celdasNoDisponibles[0].map((celda) =>
-        celda.trim()
-      );
-      const areaCeldas = ComparacionCeldas?.length
-        ? ComparacionCeldas
-        : Areas[Band].Celdas[0].split(",").map((celda) => celda.trim());
-      areaFiltrado = areaCeldas.filter(
-        (celda) => !celdasNoDisponiblesLimpias.includes(celda)
-      );
-      console.log("area filtrado " + areaFiltrado);
-
-      if (areaFiltrado.length === 0) {
-        console.log(
-          `===============================================================================================`
-            .cyan.bold
+      } else {
+        const celdasNoDisponiblesLimpias = celdasNoDisponibles[0].map((celda) =>
+          celda.trim()
         );
-        return false;
+        const areaCeldas = celdasColocadasActuales();
+        areaFiltrado = areaCeldas.filter(
+          (celda) => !celdasNoDisponiblesLimpias.includes(celda)
+        );
+        console.log("area filtrado " + areaFiltrado);
+
+        if (areaFiltrado.length === 0) {
+          console.log(
+            `===============================================================================================`
+              .cyan.bold
+          );
+          return false;
+        }
+
+        const { grupos } = gruposAdyacentes(areaFiltrado);
+        if (grupos.length > 1) {
+          mostrarBloquesAdyacencia(
+            "⚠️ Al quitar las no disponibles, el área queda partida en",
+            grupos
+          );
+          if (prevenirNoAdyacentes == 1) {
+            areaFiltrado = grupos[0];
+            console.log(
+              `prevenirNoAdyacentes=1: se colocará solo el bloque más grande (${areaFiltrado.length} celdas).`
+                .green.bold
+            );
+          } else {
+            console.log(
+              "prevenirNoAdyacentes=0: se colocan todas; ANNA debería responder 'no son adyacentes'."
+                .yellow
+            );
+          }
+        }
       }
 
       console.log(`CELDAS DISPONIBLES => `.green.bold);
@@ -2422,101 +2482,9 @@ function Mineria(browser, Pin,) {
 
     await Documentos_Adicionales(page, Empresa);
 
-
-
-    const continPag = await page.$x('//span[contains(.,"Continuar")]');
-    if (continuarManual == 1) {
-      await clickContinuar(page, 1);
-    } else {
-      await continPag[1].click();
-    }
-
-    if (Radisegundo) clearTimeout(Radisegundo);
-    await page.waitForNavigation({
-      waitUntil: "networkidle0",
-    });
-    console.log(" si navego ");
-
-
-
-
-    let RadiTercero = null;
-    if (continuarManual != 1) {
-      RadiTercero = setTimeout(() => {
-        console.log("ENTRO EN EL Radisegundo");
-        //page.close();
-        Mineria(browser, Pin);
-      }, 120000);
-    }
-
-    //  await page.waitForTimeout(1000000);
-
-
-    while (true) {
-
-      let resultado = await RECAPTCHA(page);
-      if (resultado == 1) {
-        break;
-      }
-
-    }
-
-    var imagendeCaptcha = 0;
-    while (true) {
-      await page.waitForTimeout(1500);
-
-      if (page.url() === 'https://annamineria.anm.gov.co/sigm/index.html#/p_CaaIataSummary') {
-        let resultado = await verificarCaptchaResuelto(page, imagendeCaptcha);
-        if (resultado === 1) {
-          if (RadiTercero) clearTimeout(RadiTercero);
-          break;
-        } else if (resultado === 2) {
-          console.log("El captcha sigue en modo reto de imagenes");
-          Correo(6, Areas[Band].NombreArea, Areas[Band].Referencia);
-          // lO RETIRO PORQUE NO VALE LA PENA
-          // Mineria(browser, Pin);
-          imagendeCaptcha = 1;
-        } else {
-          // await RECAPTCHA(page);
-        }
-
-      } else if (page.url() === 'https://annamineria.anm.gov.co/sigm/index.html#/p_CaaIataAttachDocuments') {
-        const posibleContinuar = await page.$x('//span[contains(.,"Continuar")]');
-        if (posibleContinuar.length > 0) {
-          console.log("⚠️ Se encontró el botón 'Continuar' en la página.");
-          if (continuarManual == 1) {
-            await clickContinuar(page, 1);
-          } else {
-            console.log([posibleContinuar]);
-            await posibleContinuar[1].click();
-          }
-          await page.waitForNavigation({
-            waitUntil: "networkidle0",
-          });
-          await RECAPTCHA(page);
-        }
-      }
-    }
-
-    // await page.waitForTimeout(1000000);
-
-    console.log("51. Bóton Radicar");
-
-    const btnRadicar1 = await page.$x('//span[contains(.,"Radicar")]');
-    console.log("Este es el boton radicar : " + btnRadicar1);
-
-    console.log("Le di click");
-
-    try {
-      await btnRadicar1[1].click();
-    } catch (exepcion) {
-      console.log("La 1 tampoco Y_Y");
-    }
-
-
-    //CORREO RADICACION
+    // MODO PRUEBA: no Continuar → Radicar; solo aviso y espera
     Correo(2, Areas[Band].NombreArea, Areas[Band].Referencia);
-    await page.waitForTimeout(180000);
+    await page.waitForTimeout(999000);
     Mineria(browser, Pin);
 
     } catch (error) {
@@ -2594,8 +2562,8 @@ function Correo(Tipo, Area, Celda) {
 
   let mailOptions = {
     from: msg + '"Ceere" <correomineria2@ceere.net>', //Deje eso quieto Outlook porne demasiados problemas
-    to: "jorgecalle@hotmail.com, jorgecaller@gmail.com, alexisaza@hotmail.com,  ceereweb@gmail.com, Soporte2ceere@gmail.com, soportee4@gmail.com, soporte.ceere06068@gmail.com",
-    //to: '  Soporte2ceere@gmail.com',
+    //to: "jorgecalle@hotmail.com, jorgecaller@gmail.com, alexisaza@hotmail.com,  ceereweb@gmail.com, Soporte2ceere@gmail.com, soportee4@gmail.com, soporte.ceere06068@gmail.com",
+    to: '  Soporte2ceere@gmail.com',
     subject: "LA AREA ES-> " + Area,
     text: "LA AREA ES->  " + Area + "  " + Celda,
     html: `
