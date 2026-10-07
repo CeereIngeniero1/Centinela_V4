@@ -27,8 +27,8 @@ console.log(" Nombre del equipo: ", NombreEquipo);
 const EquipoActual = EquiposGenerales[NombreEquipo];
 console.log(" Equipo Actual: ", EquipoActual);
 
-const Empresa = "MAX";
-const CodigoPin = "V6";
+const Empresa = "Freeport";
+const CodigoPin = "F4";
 const ARCHIVO_AREAS = "507531 copy";
 const DASHBOARD_URL = "https://annamineria.anm.gov.co/sigm/index.html#/extDashboard";
 const ESPERA_DASHBOARD_MS = 3000;
@@ -69,7 +69,7 @@ const user1 = Datos_Empresa.Codigo;
 const pass1 = Datos_Empresa.Contraseña;
 const user2 = '97295';
 const pass2 = 'FR3P3RTM2026$';
-const Agente = 1;
+const Agente = 0;
 const manual = 0; // 1 = pausa en PIN tras colocarlo; 0 = flujo automático
 const continuarManual = 1; // 1 = el bot solo coloca datos; el humano hace clic en Continuar; 0 = bot también da Continuar
 const continuarAreaManual = 1; // 1 = el humano da Continuar después de colocar el área; 0 = clic automático

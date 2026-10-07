@@ -70,6 +70,16 @@
     "vencimiento": "17/OCT/2025",
     "empresa": "Freeport"
   },
+  "F4": {
+    "pin": "20261007135558",
+    "vencimiento": "07/NOV/2026",
+    "empresa": "Freeport"
+  },
+  "F5": {
+    "pin": "20261007135930",
+    "vencimiento": "07/NOV/2026",
+    "empresa": "Freeport"
+  },
   "NM": {
     "pin": "20250902153109",
     "vencimiento": "02/OCT/2025",
