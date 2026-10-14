@@ -1,0 +1,6 @@
+ "Collective": {
+    "pasivoCorrienteId0": 40691197000,
+    "activoCorrienteId0": 15155290000,
+    "pasivoTotalId0": 43142024000,
+    "activoTotalId0": 344129891000
+  }
