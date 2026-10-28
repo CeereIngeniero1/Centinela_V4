@@ -28,6 +28,11 @@
     "vencimiento": "14/NOV/2026",
     "empresa": "Collective"
   },
+  "C5": {
+    "pin": "20261028133944",
+    "vencimiento": "28/NOV/2026",
+    "empresa": "Collective"
+  },
   "Po": {
     "pin": "20241008080440",
     "vencimiento": "08/NOV/2024",
