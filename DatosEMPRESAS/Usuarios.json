@@ -44,6 +44,42 @@
     }
   },
   "Collective": {
+    "Provenza": {
+      "Usuario": "74025",
+      "Clave": "AznevorP402..*",
+      "Nombre": "Provenza",
+      "NOTA": "Funciona"
+    },
+    "Santiago": {
+      "Usuario": "96233",
+      "Clave": "SuperAgente86*",
+      "Nombre": "Santiago",
+      "Nota": "Funciona"
+    },
+    "Wilson": {
+      "Usuario": "38409",
+      "Clave": "Wilson1980**",
+      "Nombre": "Wilson Velez",
+      "Nota": "Funciona"
+    },
+    "Natalia": {
+      "Usuario": "83542",
+      "Clave": "eN1*vQ0*mC",
+      "Nombre": "Natalia Vargas",
+      "Nota": "Funciona"
+    },
+    "Campana": {
+      "Usuario": "63213",
+      "Clave": "Anapmac034..*",
+      "Nombre": "Campana",
+      "Nota": "Funciona"
+    },
+    "Fernando": {
+      "Usuario": "83955",
+      "Clave": "ANM2026ANNA$",
+      "Nombre": "Fernando",
+      "Nota": "Funciona"
+    },
     "Alejandra": {
       "Usuario": "76467",
       "Clave": "Maxamaga2025.",
@@ -62,37 +98,10 @@
       "Nombre": "David",
       "Nota": "Ya no disponible por contraseña"
     },
-    "Fernando": {
-      "Usuario": "83955",
-      "Clave": "ANM2026ANNA$",
-      "Nombre": "Fernando"
-    },
     "Jorge": {
       "Usuario": "99401",
       "Clave": "JU9*-2024&",
       "Nombre": "Jorge"
-    },
-    "Provenza": {
-      "Usuario": "74025",
-      "Clave": "AznevorP402..*",
-      "Nombre": "Provenza"
-    },
-    "Santiago": {
-      "Usuario": "96233",
-      "Clave": "SuperAgente86*",
-      "Nombre": "Santiago"
-    },
-    "JoanDavid": {
-      "Usuario": "104908",
-      "Clave": "Collective10*",
-      "Nombre": "Joan David Álvarez Caicedo",
-      "Nota": "Para ARE"
-    },
-    "Wilder": {
-      "Usuario": "38409",
-      "Clave": "Wilson1980**",
-      "Nombre": "Wilder",
-      "Nota": "Para ARE"
     },
     "Oscar": {
       "Usuario": "70164",
@@ -110,22 +119,7 @@
       "Usuario": "104736",
       "Clave": "Laura123..",
       "Nombre": "Laura",
-      "Nota": "Normal"
-    },
-    "Wilson": {
-      "Usuario": "38409",
-      "Clave": "Wilson1980**",
-      "Nombre": "Wilson Velez"
-    },
-    "Natalia": {
-      "Usuario": "83542",
-      "Clave": "eN1*vQ0*mC",
-      "Nombre": "Natalia Vargas"
-    },
-    "Campana": {
-      "Usuario": "63213",
-      "Clave": "Anapmac034..*",
-      "Nombre": "Campana"
+      "Nota": "No tiene permisos"
     }
   },
   "AGMIVEL": {
